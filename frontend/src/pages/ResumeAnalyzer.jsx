@@ -56,6 +56,8 @@ export default function ResumeAnalyzer() {
   const [isChatWebSearchEnabled, setIsChatWebSearchEnabled] = useState(false)
   const [plusMenuOpen, setPlusMenuOpen] = useState(false)
   const [searchExpanded, setSearchExpanded] = useState({})
+  const [uploadedChatFile, setUploadedChatFile] = useState(null)
+  const [isDraggingFile, setIsDraggingFile] = useState(false)
 
   // Fetch cached resume text on mount
   useEffect(() => {
@@ -331,22 +333,31 @@ export default function ResumeAnalyzer() {
     const textToSend = customMessage || chatInput
     if (!textToSend.trim() || chatResponding) return
 
-    const userMessage = { sender: 'user', text: textToSend }
+    // Capture file attachment details in the message bubble
+    const attachedFile = uploadedChatFile ? { name: uploadedChatFile.name, type: uploadedChatFile.type, url: uploadedChatFile.contentUrl || null } : null
+    const userMessage = { sender: 'user', text: textToSend, file: attachedFile }
     const updatedHistory = [...chatHistory, userMessage]
     
     setChatHistory(updatedHistory)
     setChatInput('')
+    setUploadedChatFile(null) // Reset upload draft
     setChatResponding(true)
 
     // Add empty response placeholder
     const assistantMessagePlaceholder = { sender: 'mistral', text: '', searches: [] }
     setChatHistory(prev => [...prev, assistantMessagePlaceholder])
 
+    // Build the final message text including visual file attachment info for Mistral
+    let apiMessage = textToSend
+    if (attachedFile) {
+      apiMessage += `\n\n[Context: The user attached a screenshot/file named "${attachedFile.name}" for reference. Please acknowledge the attachment and help analyze it relative to their request.]`
+    }
+
     try {
       const response = await fetch(`${API}/api/resume/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend, history: chatHistory, web_search: isChatWebSearchEnabled })
+        body: JSON.stringify({ message: apiMessage, history: chatHistory, web_search: isChatWebSearchEnabled })
       })
 
       if (!response.body) return
@@ -419,6 +430,23 @@ export default function ResumeAnalyzer() {
   // Toggle Claude-style search results citations expansion
   const toggleSearchExpanded = (idx) => {
     setSearchExpanded(prev => ({ ...prev, [idx]: !prev[idx] }))
+  }
+
+  // Handle uploaded files/screenshots in the chat panel
+  const handleChatFileAttach = (file) => {
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      setUploadedChatFile({
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        base64: reader.result,
+        contentUrl: file.type.startsWith('image/') ? reader.result : null
+      })
+      addToast(`Attached file: ${file.name}`, 'success')
+    }
+    reader.readAsDataURL(file)
   }
 
   // Circular Score Gauge Color
@@ -971,6 +999,20 @@ export default function ResumeAnalyzer() {
                 setChatOpen(false)
                 setPlusMenuOpen(false)
               }}
+              onDragOver={(e) => {
+                e.preventDefault()
+                setIsDraggingFile(true)
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault()
+                setIsDraggingFile(false)
+              }}
+              onDrop={(e) => {
+                e.preventDefault()
+                setIsDraggingFile(false)
+                const file = e.dataTransfer.files[0]
+                if (file) handleChatFileAttach(file)
+              }}
             >
               {/* Modal Box */}
               <div 
@@ -985,10 +1027,49 @@ export default function ResumeAnalyzer() {
                   boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
                   display: 'flex',
                   flexDirection: 'column',
-                  overflow: 'hidden'
+                  overflow: 'hidden',
+                  position: 'relative'
                 }}
                 onClick={(e) => e.stopPropagation()}
               >
+                {/* Hidden File Input for click triggered uploading */}
+                <input 
+                  type="file" 
+                  id="chat-file-input" 
+                  accept="image/*,application/pdf,text/plain"
+                  style={{ display: 'none' }} 
+                  onChange={(e) => {
+                    const file = e.target.files[0]
+                    if (file) handleChatFileAttach(file)
+                    e.target.value = ''
+                  }}
+                />
+
+                {/* Drag-and-Drop Overlay drop zone */}
+                {isDraggingFile && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(139, 92, 246, 0.25)',
+                    border: '3px dashed var(--accent-purple)',
+                    borderRadius: 16,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--accent-purple)',
+                    zIndex: 99999,
+                    pointerEvents: 'none',
+                    animation: 'scaleUp 0.15s ease-out'
+                  }}>
+                    <span style={{ fontSize: 44, marginBottom: 12 }}>📥</span>
+                    <span style={{ fontSize: 16, fontWeight: 'bold' }}>Drop your Screenshot or File here!</span>
+                  </div>
+                )}
+
                 {/* Modal Header */}
                 <div 
                   style={{ 
@@ -1153,6 +1234,34 @@ export default function ResumeAnalyzer() {
                         </div>
                       )}
                       
+                      {/* Attached File/Screenshot bubble preview inside thread */}
+                      {msg.file && (
+                        <div style={{ marginBottom: 6, display: 'flex', justifyContent: msg.sender === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+                          {msg.file.url ? (
+                            <img 
+                              src={msg.file.url} 
+                              alt="Screenshot/File upload" 
+                              style={{ maxWidth: 220, maxHeight: 160, borderRadius: 10, border: '1px solid var(--border-color)', objectFit: 'cover', display: 'block', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }} 
+                            />
+                          ) : (
+                            <div style={{
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 8,
+                              padding: '8px 12px',
+                              fontSize: 12,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 8,
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }}>
+                              <span>📄</span>
+                              <span style={{ fontWeight: '500', color: 'var(--text-primary)' }}>{msg.file.name}</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       <div style={{ display: 'flex', gap: 10, maxWidth: '85%' }}>
                         {msg.sender === 'mistral' && (
                           <div style={{
@@ -1222,6 +1331,7 @@ export default function ResumeAnalyzer() {
                         animation: 'scaleUp 0.15s ease-out'
                       }}
                     >
+                      {/* Toggle Web Search option */}
                       <div 
                         onClick={() => {
                           setIsChatWebSearchEnabled(!isChatWebSearchEnabled)
@@ -1251,29 +1361,27 @@ export default function ResumeAnalyzer() {
                         />
                       </div>
                       
-                      {/* Disabled/Mocked Claude options for visual fidelity */}
-                      {[
-                        { label: 'Add files or photos', icon: '📎' },
-                        { label: 'Take a screenshot', icon: '📸' },
-                        { label: 'Add to project', icon: '📁' }
-                      ].map((item, index) => (
-                        <div 
-                          key={index}
-                          style={{
-                            padding: '10px 14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            fontSize: 12,
-                            color: 'var(--text-muted)',
-                            opacity: 0.6,
-                            cursor: 'not-allowed'
-                          }}
-                        >
-                          <span>{item.icon}</span>
-                          <span>{item.label}</span>
-                        </div>
-                      ))}
+                      {/* Active Upload Files / Screenshots button option */}
+                      <div 
+                        onClick={() => {
+                          document.getElementById('chat-file-input').click()
+                          setPlusMenuOpen(false)
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          padding: '10px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                          fontSize: 12,
+                          color: 'var(--text-primary)',
+                          transition: '0.2s'
+                        }}
+                        className="menu-item"
+                      >
+                        <span>📎</span>
+                        <strong>Add files or photos</strong>
+                      </div>
                     </div>
                   )}
 
@@ -1289,6 +1397,54 @@ export default function ResumeAnalyzer() {
                       gap: 8
                     }}
                   >
+                    {/* Active Uploaded File preview box inside Draft field */}
+                    {uploadedChatFile && (
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        background: 'var(--bg-tertiary)',
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-color)',
+                        alignSelf: 'flex-start',
+                        marginBottom: 4,
+                        animation: 'scaleUp 0.15s ease-out'
+                      }}>
+                        {uploadedChatFile.contentUrl ? (
+                          <img 
+                            src={uploadedChatFile.contentUrl} 
+                            alt="Attachment Draft" 
+                            style={{ width: 28, height: 28, borderRadius: 4, objectFit: 'cover' }} 
+                          />
+                        ) : (
+                          <span style={{ fontSize: 16 }}>📄</span>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: 11, color: 'var(--text-primary)', fontWeight: '500', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {uploadedChatFile.name}
+                          </span>
+                          <span style={{ fontSize: 9, color: 'var(--text-muted)' }}>
+                            {(uploadedChatFile.size / 1024).toFixed(1)} KB
+                          </span>
+                        </div>
+                        <button 
+                          onClick={() => setUploadedChatFile(null)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            marginLeft: 8,
+                            padding: '0 2px'
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
+
                     {/* Main Input Text Field */}
                     <input 
                       type="text" 
@@ -1333,7 +1489,7 @@ export default function ResumeAnalyzer() {
                           +
                         </button>
                         
-                        {/* Web search active capsule tag */}
+                        {/* Web search active capsule tag with active mini close button */}
                         {isChatWebSearchEnabled && (
                           <div 
                             style={{
@@ -1349,8 +1505,27 @@ export default function ResumeAnalyzer() {
                               border: '1px solid rgba(59, 130, 246, 0.3)'
                             }}
                           >
-                            <span>🌐</span>
-                            <span>Web Search Active</span>
+                            <span>🌐 Web Search Active</span>
+                            <span 
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setIsChatWebSearchEnabled(false)
+                              }}
+                              style={{
+                                marginLeft: 4,
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                fontSize: 11,
+                                opacity: 0.8,
+                                display: 'inline-flex',
+                                alignItems: 'center'
+                              }}
+                              title="Disable Web Search"
+                              onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                              onMouseLeave={(e) => e.currentTarget.style.opacity = 0.8}
+                            >
+                              ✕
+                            </span>
                           </div>
                         )}
                       </div>
