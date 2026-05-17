@@ -10,3 +10,4 @@ python-multipart>=0.0.9
 requests
 beautifulsoup4
 setuptools
+PyPDF2

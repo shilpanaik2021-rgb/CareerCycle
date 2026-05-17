@@ -462,3 +462,98 @@ tr.status-row-rejected { background: rgba(248,81,73,0.03); }
   .filter-bar { flex-direction: column; align-items: stretch; }
   .filter-bar input, .filter-bar select { max-width: 100%; }
 }
+
+/* Resume Analyzer Specific Styles */
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.upload-box:hover {
+  border-color: var(--accent-blue) !important;
+  background: var(--bg-tertiary) !important;
+}
+
+.resume-preview-box::-webkit-scrollbar {
+  width: 4px;
+}
+
+.resume-pre-formatted {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.resume-highlight {
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.resume-highlight.highlight-red {
+  background: rgba(248, 81, 73, 0.15);
+  color: var(--accent-red);
+  border-bottom: 2px dashed var(--accent-red);
+}
+
+.resume-highlight.highlight-red-active {
+  background: rgba(248, 81, 73, 0.3);
+  color: #fff;
+  border-bottom: 2px solid var(--accent-red);
+  animation: pulse 1s infinite alternate;
+}
+
+.resume-highlight.highlight-green {
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--accent-green);
+  border-bottom: 2px dashed var(--accent-green);
+}
+
+@keyframes pulse {
+  from { box-shadow: 0 0 4px rgba(248, 81, 73, 0.4); }
+  to { box-shadow: 0 0 12px rgba(248, 81, 73, 0.8); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1.0); }
+}
+
+.issue-nav-item:hover {
+  border-color: var(--text-muted) !important;
+}
+.issue-nav-item.active {
+  border-color: var(--accent-blue) !important;
+}
+
+.tab-btn {
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  border-bottom: 2px solid var(--accent-blue) !important;
+  color: var(--text-primary) !important;
+}
+
+.chip:hover {
+  border-color: var(--accent-purple) !important;
+  color: var(--accent-purple) !important;
+}
+
+.dot {
+  font-size: 20px;
+  line-height: 0;
+  display: inline-block;
+}
+

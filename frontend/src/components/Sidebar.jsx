@@ -9,6 +9,7 @@ const links = [
   { to: '/jobs', icon: '💼', label: 'Jobs' },
   { to: '/cover-letters', icon: '✍️', label: 'Cover Letters' },
   { to: '/resume', icon: '📄', label: 'Resume Builder' },
+  { to: '/resume-analyzer', icon: '🔍', label: 'Resume Analyzer' },
   { to: '/settings', icon: '⚙️', label: 'Settings' },
 ]
 

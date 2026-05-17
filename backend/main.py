@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Optional
 
 import pandas as pd
-from fastapi import FastAPI, BackgroundTasks, HTTPException, Query
+from fastapi import FastAPI, BackgroundTasks, HTTPException, Query, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel
@@ -21,6 +21,15 @@ import resume_data
 from job_finder import search_jobs
 from cover_letter import generate_cover_letter, generate_cover_letter_docx, generate_all_missing, COVER_LETTERS_DIR
 from auto_apply import auto_apply_linkedin
+from resume_analyzer import (
+    stream_gemini_analysis,
+    stream_gemini_improvement,
+    stream_gemini_chat,
+    build_improved_docx,
+    extract_text_from_pdf,
+    RESUME_TEXT_PATH,
+    IMPROVED_RESUME_PATH
+)
 
 # ─── App Setup ───────────────────────────────────────────────
 app = FastAPI(title="Shilpa's Job Hunter API", version="1.0.0")
@@ -692,3 +701,131 @@ async def get_resume():
 @app.get("/api/task-status")
 async def task_status():
     return {"running": task_running}
+
+
+# ─── Resume Analyzer Endpoints ──────────────────────────────
+@app.post("/api/resume/upload")
+async def upload_resume(file: UploadFile = File(...)):
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported")
+    
+    # Save the PDF temp file
+    temp_pdf_path = RESUME_TEXT_PATH.replace("resume_text.txt", "temp_uploaded.pdf")
+    try:
+        with open(temp_pdf_path, "wb") as f:
+            f.write(await file.read())
+            
+        # Extract text
+        text = extract_text_from_pdf(temp_pdf_path)
+        if not text:
+            raise HTTPException(status_code=400, detail="Could not extract any text from the PDF")
+            
+        # Save text file
+        with open(RESUME_TEXT_PATH, "w", encoding="utf-8") as f:
+            f.write(text)
+            
+        # Clean up temp pdf
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
+            
+        words = text.split()
+        return {
+            "success": True,
+            "text_preview": text[:500],
+            "page_count": len(text) // 1500 + 1,
+            "word_count": len(words)
+        }
+    except Exception as e:
+        if os.path.exists(temp_pdf_path):
+            os.remove(temp_pdf_path)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/resume/text")
+async def get_resume_text():
+    if os.path.exists(RESUME_TEXT_PATH):
+        with open(RESUME_TEXT_PATH, "r", encoding="utf-8") as f:
+            text = f.read()
+        return {"text": text, "uploaded": True}
+    else:
+        text = resume_data.get_full_resume_text()
+        return {"text": text, "uploaded": False}
+
+
+@app.post("/api/resume/analyze")
+async def analyze_resume_stream():
+    if not os.path.exists(RESUME_TEXT_PATH):
+        text = resume_data.get_full_resume_text()
+        with open(RESUME_TEXT_PATH, "w", encoding="utf-8") as f:
+            f.write(text)
+    else:
+        with open(RESUME_TEXT_PATH, "r", encoding="utf-8") as f:
+            text = f.read()
+            
+    try:
+        return StreamingResponse(
+            stream_gemini_analysis(text),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ImproveRequest(BaseModel):
+    suggestions: Optional[str] = ""
+
+
+@app.post("/api/resume/improve")
+async def improve_resume_stream(request: ImproveRequest):
+    if not os.path.exists(RESUME_TEXT_PATH):
+        text = resume_data.get_full_resume_text()
+    else:
+        with open(RESUME_TEXT_PATH, "r", encoding="utf-8") as f:
+            text = f.read()
+            
+    try:
+        return StreamingResponse(
+            stream_gemini_improvement(text, request.suggestions),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list
+
+
+@app.post("/api/resume/chat")
+async def chat_resume_stream(request: ChatRequest):
+    if not os.path.exists(RESUME_TEXT_PATH):
+        text = resume_data.get_full_resume_text()
+    else:
+        with open(RESUME_TEXT_PATH, "r", encoding="utf-8") as f:
+            text = f.read()
+            
+    try:
+        return StreamingResponse(
+            stream_gemini_chat(request.message, request.history, text),
+            media_type="text/event-stream"
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/resume/improved/download")
+async def download_improved_resume():
+    if not os.path.exists(IMPROVED_RESUME_PATH):
+        raise HTTPException(status_code=400, detail="No improved resume found. Run the improve process first.")
+        
+    with open(IMPROVED_RESUME_PATH, "r", encoding="utf-8") as f:
+        improved_text = f.read()
+        
+    docx_path = build_improved_docx(improved_text)
+    return FileResponse(
+        docx_path,
+        filename="improved_resume.docx",
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+

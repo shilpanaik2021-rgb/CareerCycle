@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import CoverLetters from './pages/CoverLetters'
 import ResumeBuilder from './pages/ResumeBuilder'
+import ResumeAnalyzer from './pages/ResumeAnalyzer'
 import Settings from './pages/Settings'
 
 const ToastContext = createContext()
@@ -49,6 +50,7 @@ export default function App() {
               <Route path="/jobs" element={<Jobs />} />
               <Route path="/cover-letters" element={<CoverLetters />} />
               <Route path="/resume" element={<ResumeBuilder />} />
+              <Route path="/resume-analyzer" element={<ResumeAnalyzer />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
