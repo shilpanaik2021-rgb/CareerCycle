@@ -29,7 +29,7 @@ This application is built using a modern, decoupled architecture split between a
 
 ---
 
-## 🚀 Extremely Detailed "How It Works" Guide
+## 🚀 "How It Works" Guide
 
 Shilpa's Job Hunter is designed to be your all-in-one command center for job hunting. Here is exactly how every piece of the application works and how you should use it.
 
