@@ -11,3 +11,4 @@ beautifulsoup4
 setuptools
 PyPDF2
 httpx
+reportlab

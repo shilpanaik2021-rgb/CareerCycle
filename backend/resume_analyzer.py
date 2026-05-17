@@ -9,6 +9,12 @@ from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from PyPDF2 import PdfReader
 
+# ReportLab Imports
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, HRFlowable
+
 # Ensure uploads directory exists
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resume_uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
@@ -380,3 +386,129 @@ def build_improved_docx(text: str) -> str:
             
     doc.save(doc_path)
     return doc_path
+
+def build_improved_pdf(text: str) -> str:
+    """Builds a highly styled, executive-grade PDF from the improved resume text and returns the file path."""
+    pdf_path = os.path.join(UPLOAD_DIR, "improved_resume.pdf")
+    
+    # Page setup: 0.75" margins = 54pt
+    margin = 54
+    doc = SimpleDocTemplate(
+        pdf_path,
+        pagesize=letter,
+        leftMargin=margin,
+        rightMargin=margin,
+        topMargin=margin,
+        bottomMargin=margin
+    )
+    
+    # Custom styles
+    styles = getSampleStyleSheet()
+    
+    navy = colors.HexColor("#1F4E79")
+    charcoal = colors.HexColor("#333333")
+    steel = colors.HexColor("#4A6B82")
+    
+    name_style = ParagraphStyle(
+        'ResumePDFName',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=20,
+        leading=24,
+        textColor=navy,
+        alignment=1, # Centered
+        spaceAfter=4
+    )
+    
+    contact_style = ParagraphStyle(
+        'ResumePDFContact',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9.5,
+        leading=13,
+        textColor=charcoal,
+        alignment=1, # Centered
+        spaceAfter=15
+    )
+    
+    h1_style = ParagraphStyle(
+        'ResumePDFH1',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=12,
+        leading=16,
+        textColor=navy,
+        spaceBefore=14,
+        spaceAfter=4,
+        keepWithNext=True
+    )
+    
+    h2_style = ParagraphStyle(
+        'ResumePDFH2',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=10,
+        leading=14,
+        textColor=steel,
+        spaceBefore=8,
+        spaceAfter=3,
+        keepWithNext=True
+    )
+    
+    body_style = ParagraphStyle(
+        'ResumePDFBody',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9.5,
+        leading=13.5,
+        textColor=charcoal,
+        spaceAfter=6
+    )
+    
+    bullet_style = ParagraphStyle(
+        'ResumePDFBullet',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=9.5,
+        leading=13.5,
+        textColor=charcoal,
+        leftIndent=15,
+        firstLineIndent=-10,
+        spaceAfter=4
+    )
+
+    story = []
+    
+    # Dynamic Premium Header (Shilpa's Contact Info)
+    story.append(Paragraph("SHILPA NAIK, MHA", name_style))
+    story.append(Paragraph("Orlando, FL | (407) 555-0199 | Shilpa.Naik2021@gmail.com | linkedin.com/in/shilpa-naik", contact_style))
+    
+    # Parse and structure lines
+    lines = text.split("\n")
+    for line in lines:
+        cleaned = line.strip()
+        if not cleaned:
+            continue
+            
+        # Main headers (starts with # or entirely capitalized short lines)
+        if cleaned.startswith("#") and not cleaned.startswith("##"):
+            header_text = cleaned.replace("#", "").strip().upper()
+            story.append(Paragraph(header_text, h1_style))
+            story.append(HRFlowable(width="100%", thickness=1, color=steel, spaceBefore=1, spaceAfter=8))
+        elif len(cleaned) < 30 and cleaned.isupper() and not cleaned.startswith("-") and not cleaned.startswith("*"):
+            story.append(Paragraph(cleaned, h1_style))
+            story.append(HRFlowable(width="100%", thickness=1, color=steel, spaceBefore=1, spaceAfter=8))
+        # Subheaders (starts with ##)
+        elif cleaned.startswith("##"):
+            subheader_text = cleaned.replace("##", "").strip()
+            story.append(Paragraph(subheader_text, h2_style))
+        # Bullet points (starts with - or *)
+        elif cleaned.startswith("-") or cleaned.startswith("*"):
+            bullet_text = cleaned[1:].strip()
+            story.append(Paragraph(f"&bull;&nbsp; {bullet_text}", bullet_style))
+        # Paragraph body
+        else:
+            story.append(Paragraph(cleaned, body_style))
+            
+    doc.build(story)
+    return pdf_path

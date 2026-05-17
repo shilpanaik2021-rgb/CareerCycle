@@ -26,6 +26,7 @@ from resume_analyzer import (
     stream_gemini_improvement,
     stream_gemini_chat,
     build_improved_docx,
+    build_improved_pdf,
     extract_text_from_pdf,
     RESUME_TEXT_PATH,
     IMPROVED_RESUME_PATH
@@ -832,10 +833,10 @@ async def download_improved_resume():
     with open(IMPROVED_RESUME_PATH, "r", encoding="utf-8") as f:
         improved_text = f.read()
         
-    docx_path = build_improved_docx(improved_text)
+    pdf_path = build_improved_pdf(improved_text)
     return FileResponse(
-        docx_path,
-        filename="improved_resume.docx",
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        pdf_path,
+        filename="improved_resume.pdf",
+        media_type="application/pdf",
     )
 

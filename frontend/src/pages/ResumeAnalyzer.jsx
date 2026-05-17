@@ -301,10 +301,10 @@ export default function ResumeAnalyzer() {
     }
   }
 
-  // Download DOCX
-  const downloadImprovedDocx = () => {
+  // Download PDF
+  const downloadImprovedPdf = () => {
     window.open(`${API}/api/resume/improved/download`, '_blank')
-    addToast('Downloading improved Word docx', 'success')
+    addToast('Downloading improved PDF resume', 'success')
   }
 
   // Copy Improved Resume
@@ -815,8 +815,8 @@ export default function ResumeAnalyzer() {
                       <button className="btn btn-sm" onClick={copyImprovedResume} disabled={!improvedResumeText}>
                         📋 Copy Text
                       </button>
-                      <button className="btn btn-sm btn-primary" onClick={downloadImprovedDocx} disabled={!improvedResumeText}>
-                        📄 Download .docx
+                      <button className="btn btn-sm btn-primary" onClick={downloadImprovedPdf} disabled={!improvedResumeText}>
+                        📄 Download .pdf
                       </button>
                     </div>
                     <div className="resume-preview-box" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-primary)', padding: 12, borderRadius: 6, border: '1px solid var(--border-color)' }}>
