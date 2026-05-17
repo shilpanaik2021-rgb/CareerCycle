@@ -20,6 +20,8 @@ UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "resume_up
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 RESUME_TEXT_PATH = os.path.join(UPLOAD_DIR, "resume_text.txt")
 IMPROVED_RESUME_PATH = os.path.join(UPLOAD_DIR, "improved_resume.txt")
+UPLOADED_RESUME_PATH = os.path.join(UPLOAD_DIR, "uploaded_resume.pdf")
+IMPROVED_RESUME_PDF_PATH = os.path.join(UPLOAD_DIR, "improved_resume.pdf")
 
 def extract_text_from_pdf(pdf_path: str) -> str:
     """Extracts all text from a PDF file using PyPDF2."""

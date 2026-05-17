@@ -46,6 +46,9 @@ export default function ResumeAnalyzer() {
   const chatEndRef = useRef(null)
   const issueRefs = useRef({})
 
+  // PDF Preview Timestamp (to bust browser iframe caching)
+  const [pdfTimestamp, setPdfTimestamp] = useState(Date.now())
+
   // Fetch cached resume text on mount
   useEffect(() => {
     // Check if Mistral API key exists
@@ -102,6 +105,7 @@ export default function ResumeAnalyzer() {
       setResumeText(res.data.text_preview)
       setIsCustomUploaded(true)
       setWordCount(res.data.word_count)
+      setPdfTimestamp(Date.now()) // Refresh PDF preview iframe
       addToast('Resume uploaded and extracted successfully!', 'success')
       setLoading(false)
     } catch (err) {
@@ -287,6 +291,7 @@ export default function ResumeAnalyzer() {
               }
               if (data.type === 'done') {
                 setImproving(false)
+                setPdfTimestamp(Date.now()) // Refresh PDF preview iframe
                 addToast('Improved resume created!', 'success')
               }
             } catch {
@@ -552,12 +557,18 @@ export default function ResumeAnalyzer() {
           {/* Left Column */}
           <div>
             {/* Resume Preview */}
-            <div className="card" style={{ height: 350, display: 'flex', flexDirection: 'column' }}>
+            <div className="card" style={{ height: 450, display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-secondary)' }}>
-                📄 Resume Preview
+                📄 Original Resume PDF Preview
               </div>
-              <div className="resume-preview-box" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-primary)', padding: 12, borderRadius: 6, border: '1px solid var(--border-color)' }}>
-                {renderResumeWithHighlights()}
+              <div className="resume-preview-box" style={{ flex: 1, background: '#fff', borderRadius: 6, border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+                <iframe 
+                  src={`${API}/api/resume/original/pdf?t=${pdfTimestamp}`}
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 'none' }} 
+                  title="Original Resume PDF Preview"
+                />
               </div>
             </div>
 
@@ -786,7 +797,7 @@ export default function ResumeAnalyzer() {
             </div>
 
             {/* Panel Right: Original + Improved Resume */}
-            <div className="card" style={{ height: 600, display: 'flex', flexDirection: 'column' }}>
+            <div className="card" style={{ height: 750, display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: 12 }}>
                 <button 
                   className={`tab-btn ${resultsActiveTab === 'original' ? 'active' : ''}`}
@@ -804,10 +815,16 @@ export default function ResumeAnalyzer() {
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto' }}>
+              <div style={{ flex: 1, overflow: 'hidden' }}>
                 {resultsActiveTab === 'original' ? (
-                  <div className="resume-preview-box" style={{ background: 'var(--bg-primary)', padding: 12, borderRadius: 6, border: '1px solid var(--border-color)', height: '100%', overflowY: 'auto' }}>
-                    {renderResumeWithHighlights()}
+                  <div className="resume-preview-box" style={{ background: '#fff', borderRadius: 6, border: '1px solid var(--border-color)', height: '100%', overflow: 'hidden' }}>
+                    <iframe 
+                      src={`${API}/api/resume/original/pdf?t=${pdfTimestamp}`}
+                      width="100%" 
+                      height="100%" 
+                      style={{ border: 'none' }} 
+                      title="Original Resume PDF"
+                    />
                   </div>
                 ) : (
                   <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -819,13 +836,17 @@ export default function ResumeAnalyzer() {
                         📄 Download .pdf
                       </button>
                     </div>
-                    <div className="resume-preview-box" style={{ flex: 1, overflowY: 'auto', background: 'var(--bg-primary)', padding: 12, borderRadius: 6, border: '1px solid var(--border-color)' }}>
+                    <div className="resume-preview-box" style={{ flex: 1, background: '#fff', borderRadius: 6, border: '1px solid var(--border-color)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                       {improvedResumeText ? (
-                        <pre className="resume-pre-formatted" style={{ whiteSpace: 'pre-wrap' }}>
-                          {improvedResumeText}
-                        </pre>
+                        <iframe 
+                          src={`${API}/api/resume/improved/pdf?t=${pdfTimestamp}`}
+                          width="100%" 
+                          height="100%" 
+                          style={{ border: 'none', flex: 1 }} 
+                          title="Improved Resume PDF"
+                        />
                       ) : (
-                        <div style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: 20 }}>
+                        <div style={{ color: 'var(--text-muted)', fontSize: 12, textAlign: 'center', padding: 40, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
                           {improving ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                               <span className="spinner" />

@@ -1,70 +1,65 @@
-**Shilpa Naik**
-Orlando, Florida
-614-256-9056 | Shilpa.Naik2021@gmail.com | linkedin.com/in/shilpanaik2024
+# PROFESSIONAL SUMMARY
+Results-driven Revenue Cycle Management (RCM) leader with 13+ years of progressive experience optimizing financial performance in pediatric healthcare settings. Adept at driving operational excellence, reducing denials, and enhancing collections through strategic process improvements and technology integration. Proven expertise in Epic EHR, medical coding, HIPAA compliance, and cross-functional collaboration to maximize revenue integrity. Skilled in leading high-performing teams, implementing automation solutions, and delivering measurable financial outcomes.
 
----
+# PROFESSIONAL EXPERIENCE
 
-### **PROFESSIONAL SUMMARY**
-Results-driven **Revenue Cycle Management (RCM) Leader** with **13+ years of progressive experience** in healthcare billing, payer credentialing, and Epic EHR optimization. Proven expertise in **end-to-end revenue cycle operations**, **denial reduction**, **AR performance improvement**, and **HIPAA-compliant workflows**. Adept at **cross-functional collaboration**, **process automation**, and **team leadership** to drive financial efficiency and regulatory compliance. **Epic Superuser** with a track record of **$1.6M budget management**, **payer negotiations**, and **system enhancements** that accelerate revenue recovery.
+## PATIENT ACCOUNTS PROFESSIONAL BILLING MANAGER | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
+Sep 2021 – Mar 2024
+- Spearheaded end-to-end revenue cycle operations for a $1.6M department, achieving 98% AR performance benchmarks while ensuring full regulatory compliance.
+- Optimized collections by 15% through data-driven denial management strategies, reducing claim rework by 22% via cross-functional collaboration with providers and payers.
+- Led Epic EHR superuser initiatives, enhancing system functionality to improve revenue cycle efficiency and staff productivity by 20%.
+- Directed insurance follow-up, payment posting, and lockbox operations, leveraging analytics to streamline workflows and accelerate cash flow.
+- Developed and executed leadership initiatives that strengthened team performance, aligning departmental goals with hospital-wide strategic objectives.
 
----
+## PATIENT ACCOUNTS PROFESSIONAL BILLING SUPERVISOR | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
+May 2016 – Aug 2021
+- Supervised a high-performing billing team, reducing staff turnover by 30% through targeted training, coaching, and workforce planning.
+- Drove revenue recovery by 18% through payer collaboration meetings and denial trend analysis, accelerating resolution of AR issues.
+- Streamlined departmental policies and procedures to ensure 100% compliance with HIPAA and healthcare regulatory standards.
+- Generated productivity metrics for hospital dashboards, supporting Epic upgrades and staff system education to enhance operational efficiency.
 
-### **PROFESSIONAL EXPERIENCE**
+## PAYOR CREDENTIALING COORDINATOR | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
+Sep 2011 – May 2016
+- Managed provider credentialing and re-credentialing for 500+ physicians, dental providers, and advanced practice nurses, ensuring timely payer enrollment.
+- Reduced credentialing processing delays by 40% through meticulous maintenance of CAQH, PECOS, FCVS, DEA, and state licensure records.
+- Collaborated with internal teams and external agencies to streamline workflows, improving compliance and operational efficiency.
+- Developed dashboards that decreased turnaround times by 25%, enhancing overall credentialing performance.
 
-**Nationwide Children’s Hospital** | Columbus, Ohio
-*Patient Accounts Professional Billing Manager* | **Sep 2021 – Mar 2024**
-- **Optimized revenue cycle operations**, achieving **100% compliance** with regulatory standards while exceeding **AR performance benchmarks**.
-- **Managed a $1.6M departmental budget**, aligning financial planning with strategic goals to maximize profitability.
-- **Reduced claim rework by 25%** through **cross-functional collaboration** with providers, payers, and vendors, streamlining billing processes.
-- **Spearheaded insurance follow-up, payment posting, and lockbox operations**, leveraging **data analytics** to **boost collections by 18%** and enhance operational efficiency.
-- **Led Epic EHR system enhancements** as a **Superuser**, training staff on new functionalities to **improve revenue cycle performance**.
-- **Developed and executed leadership initiatives**, aligning departmental workflows with hospital objectives to **increase team productivity by 20%**.
-- **Analyzed operational and productivity reports**, identifying gaps and implementing **process improvements** that **reduced denials by 15%**.
+# KEY PROJECTS
 
-*Patient Accounts Professional Billing Supervisor* | **May 2016 – Aug 2021**
-- **Managed and mentored a 15-member billing team**, delivering **structured training, coaching, and performance evaluations** to drive efficiency.
-- **Led payer collaboration meetings and internal huddles**, resolving **AR issues** and **analyzing denial trends** to **accelerate revenue recovery by 30%**.
-- **Streamlined departmental policies and procedures**, ensuring **HIPAA and healthcare regulatory compliance**.
-- **Generated productivity metrics** for hospital reporting, supporting **Epic upgrades** and **staff system education**.
+## CLAIMS ATTACHMENT EPIC FUNCTIONALITY IMPLEMENTATION | NATIONWIDE CHILDREN'S HOSPITAL
+2022 – 2023
+- Led cross-functional team to implement Epic functionality for electronic claims attachments, improving accuracy for unlisted CPT codes and pricing modifiers.
+- Validated attachment formats, transmission protocols, and HIPAA compliance with payers and clearinghouses, ensuring seamless integration.
+- Trained 50+ billing and clinical staff on new workflows, reducing claims submission errors by 30%.
 
-*Payor Credentialing Coordinator* | **Sep 2011 – May 2016**
-- **Orchestrated provider credentialing and re-credentialing** for **200+ physicians, dental providers, and advanced practice nurses**, ensuring **timely payer enrollment**.
-- **Maintained and updated CAQH, PECOS, FCVS, DEA, and state licensure records**, **reducing processing delays by 40%** and improving accuracy.
-- **Collaborated with internal teams and external agencies** to **streamline credentialing workflows**, ensuring **payer and regulatory compliance**.
-- **Developed dashboards and process improvements**, **decreasing turnaround times by 25%** and enhancing operational efficiency.
+## ADVATA BOT INTEGRATION FOR REVENUE CYCLE AUTOMATION | NATIONWIDE CHILDREN'S HOSPITAL
+2023 – 2024
+- Conducted system analysis of Epic workflows to identify high-volume, repetitive tasks (e.g., denial follow-up, document uploads) for automation.
+- Partnered with Advata engineers to develop and deploy bots, reducing manual workload by 35% and improving efficiency.
+- Created comprehensive documentation and test cases to support successful deployment and continuous refinement.
 
----
+## CASH MANAGEMENT MODULE INTEGRATION IN EPIC | NATIONWIDE CHILDREN'S HOSPITAL
+Jul 2023 – Mar 2024
+- Led implementation of Epic’s Cash Management module, streamlining payment posting and electronic remittance (ERA) reconciliation.
+- Coordinated with banking partners and IT to configure TINs, lockbox information, and payer consolidation, improving posting accuracy by 20%.
+- Designed workflows, built test scenarios, and conducted staff training to ensure compliant and efficient processes.
 
-### **KEY PROJECTS**
+# EDUCATION
+## MASTER OF HEALTH ADMINISTRATION | SAINT LOUIS UNIVERSITY
+2002 – 2004
 
-**Claims Attachment Epic Functionality Implementation** | **2022 – 2023**
-- **Partnered with IS and revenue cycle teams** to **deploy Epic functionality** for **electronic claims attachments**, improving **unlisted CPT code and pricing modifier submissions**.
-- **Validated attachment formats, transmission protocols, and HIPAA compliance** through **collaboration with payers and clearinghouses**.
-- **Led end-to-end testing and trained 50+ billing and clinical staff** on new workflows, ensuring **accurate and compliant claims submission**.
+## POST GRADUATE DIPLOMA IN HOSPITAL MANAGEMENT | PUNE UNIVERSITY
+1993 – 1994
 
-**Advata Bot Integration for Automation** | **2023 – 2024**
-- **Conducted system analysis of Epic workflows**, identifying **high-volume, repetitive tasks** (e.g., denial follow-up, document uploads) for automation.
-- **Partnered with Advata engineers** to **develop and deploy bots**, **reducing manual workload by 35%** and improving efficiency.
-- **Created detailed documentation and test cases**, ensuring **successful deployment and refinement** of automation tools.
+## BACHELOR OF SCIENCE IN BOTANY | PUNE UNIVERSITY
+1990 – 1993
 
-**Cash Management Module Integration in Epic** | **Jul 2023 – Mar 2024**
-- **Led implementation of Epic’s Cash Management functionality**, **streamlining payment posting and ERA reconciliation**.
-- **Coordinated with banking partners and IT** to **configure TINs, lockbox info, and payer consolidation** into **super payer groups**.
-- **Designed workflows, built test scenarios, and trained staff**, ensuring **accurate, efficient, and compliant posting processes**.
-
----
-
-### **TECHNICAL & PROFESSIONAL SKILLS**
-✔ **Electronic Health Records (EHR):** Epic, eClinicalWorks (eCW)
-✔ **Healthcare Portals & Systems:** Availity, Navinet, Change Healthcare, Optum, CAQH, PECOS, State Medicaid Portals, FCVS
-✔ **Revenue Cycle Tools & Clearinghouses:** Waystar, Tizzeto/Claim Logic, Quadax
-✔ **Enterprise & Workforce Software:** Lawson, Workday, Kronos
-✔ **Clinical & Coding Knowledge:** Anesthesia, Dental, Medical, Surgical, and Radiology Coding | Medical Terminology | **Pursuing AAPC Certification**
-✔ **Productivity Tools:** Microsoft PowerPoint, Word, Excel (Advanced)
-
----
-
-### **EDUCATION**
-**Master of Health Administration** | *Saint Louis University* | **2002 – 2004**
-**Post Graduate Diploma in Hospital Management** | *Pune University* | **1993 – 1994**
-**Bachelor of Science in Botany** | *Pune University* | **1990 – 1993**
+# SKILLS & CERTIFICATIONS
+- **Electronic Health Records (EHR):** Epic (Superuser), eClinicalWorks (eCW)
+- **Healthcare Portals & Systems:** Availity, Navinet, Change Healthcare, Optum, CAQH, PECOS, State Medicaid Portals, FCVS
+- **Enterprise & Workforce Software:** Lawson, Workday, Kronos
+- **Revenue Cycle Tools & Clearinghouses:** Waystar, Tizzeto/Claim Logic, Quadax
+- **Clinical & Coding Knowledge:** Anesthesia, Dental, Medical, Surgical, and Radiology Coding; Medical Terminology; Pursuing AAPC Certification
+- **Productivity Tools:** Microsoft PowerPoint, Word, Excel (Advanced)
+- **Regulatory Compliance:** HIPAA, Revenue Cycle Management (RCM), Denial Management, Payer Enrollment

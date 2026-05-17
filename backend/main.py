@@ -29,7 +29,9 @@ from resume_analyzer import (
     build_improved_pdf,
     extract_text_from_pdf,
     RESUME_TEXT_PATH,
-    IMPROVED_RESUME_PATH
+    IMPROVED_RESUME_PATH,
+    UPLOADED_RESUME_PATH,
+    IMPROVED_RESUME_PDF_PATH
 )
 
 # ─── App Setup ───────────────────────────────────────────────
@@ -720,24 +722,22 @@ async def upload_resume(file: UploadFile = File(...)):
     if not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
     
-    # Save the PDF temp file
-    temp_pdf_path = RESUME_TEXT_PATH.replace("resume_text.txt", "temp_uploaded.pdf")
     try:
-        with open(temp_pdf_path, "wb") as f:
+        # Write PDF to persistent location UPLOADED_RESUME_PATH
+        with open(UPLOADED_RESUME_PATH, "wb") as f:
             f.write(await file.read())
             
         # Extract text
-        text = extract_text_from_pdf(temp_pdf_path)
+        text = extract_text_from_pdf(UPLOADED_RESUME_PATH)
         if not text:
+            # Clean up corrupted file if text extraction completely failed
+            if os.path.exists(UPLOADED_RESUME_PATH):
+                os.remove(UPLOADED_RESUME_PATH)
             raise HTTPException(status_code=400, detail="Could not extract any text from the PDF")
             
         # Save text file
         with open(RESUME_TEXT_PATH, "w", encoding="utf-8") as f:
             f.write(text)
-            
-        # Clean up temp pdf
-        if os.path.exists(temp_pdf_path):
-            os.remove(temp_pdf_path)
             
         words = text.split()
         return {
@@ -747,8 +747,8 @@ async def upload_resume(file: UploadFile = File(...)):
             "word_count": len(words)
         }
     except Exception as e:
-        if os.path.exists(temp_pdf_path):
-            os.remove(temp_pdf_path)
+        if os.path.exists(UPLOADED_RESUME_PATH):
+            os.remove(UPLOADED_RESUME_PATH)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -840,3 +840,45 @@ async def download_improved_resume():
         media_type="application/pdf",
     )
 
+
+@app.get("/api/resume/original/pdf")
+async def get_original_pdf():
+    """Serves the uploaded original resume PDF. Generates one dynamically if none has been uploaded yet."""
+    if os.path.exists(UPLOADED_RESUME_PATH):
+        return FileResponse(
+            UPLOADED_RESUME_PATH,
+            media_type="application/pdf",
+        )
+    else:
+        # Generate default resume PDF on the fly using ReportLab so a PDF always exists
+        default_text = resume_data.get_full_resume_text()
+        pdf_path = build_improved_pdf(default_text)
+        # Copy to UPLOADED_RESUME_PATH so it's cached
+        import shutil
+        shutil.copy(pdf_path, UPLOADED_RESUME_PATH)
+        return FileResponse(
+            UPLOADED_RESUME_PATH,
+            media_type="application/pdf",
+        )
+
+
+@app.get("/api/resume/improved/pdf")
+async def get_improved_pdf():
+    """Serves the improved resume PDF if generated."""
+    if os.path.exists(IMPROVED_RESUME_PDF_PATH):
+        return FileResponse(
+            IMPROVED_RESUME_PDF_PATH,
+            media_type="application/pdf",
+        )
+    
+    # If improved PDF is not generated yet but improved text is cached, compile it on the fly
+    if os.path.exists(IMPROVED_RESUME_PATH):
+        with open(IMPROVED_RESUME_PATH, "r", encoding="utf-8") as f:
+            text = f.read()
+        pdf_path = build_improved_pdf(text)
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+        )
+        
+    raise HTTPException(status_code=404, detail="Improved PDF resume not found. Run the improve process first.")
