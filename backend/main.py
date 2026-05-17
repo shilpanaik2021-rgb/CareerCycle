@@ -752,7 +752,7 @@ async def get_resume_text():
         return {"text": text, "uploaded": False}
 
 
-@app.post("/api/resume/analyze")
+@app.get("/api/resume/analyze")
 async def analyze_resume_stream():
     if not os.path.exists(RESUME_TEXT_PATH):
         text = resume_data.get_full_resume_text()
