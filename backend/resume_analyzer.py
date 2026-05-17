@@ -41,28 +41,20 @@ def get_mistral_api_key():
     return api_key
 
 def free_web_search(query: str, max_results=3):
-    """Performs a free, zero-config DuckDuckGo web search via the lite HTML site."""
-    url = "https://lite.duckduckgo.com/lite/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-    }
+    """Performs a free, zero-config DuckDuckGo web search using the official duckduckgo_search package."""
     try:
-        response = requests.post(url, headers=headers, data={"q": query}, timeout=5)
-        if response.status_code != 200:
-            return []
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
+        from duckduckgo_search import DDGS
         results = []
-        for link in soup.find_all('a', class_='result-link')[:max_results]:
-            title = link.get_text()
-            href = link.get('href')
-            results.append({
-                "title": title.strip(),
-                "url": href
-            })
+        with DDGS() as ddgs:
+            raw_results = list(ddgs.text(query, max_results=max_results))
+            for r in raw_results:
+                results.append({
+                    "title": r.get("title", "").strip(),
+                    "url": r.get("href", "").strip()
+                })
         return results
     except Exception as e:
-        print("Free web search error:", e)
+        print("DuckDuckGo search package error:", e)
         return []
 
 def parse_analysis_scores(text: str):
