@@ -262,7 +262,7 @@ async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'message': f"Mistral API Error: {str(e)}"})}\n\n"
 
-async def stream_gemini_chat(message: str, history: list, resume_text: str, web_search: bool = False):
+async def stream_gemini_chat(message: str, history: list, resume_text: str, web_search: bool = False, thinking_mode: bool = False):
     """Streams live chat response with resume context, history, and real-time grounding using Mistral."""
     try:
         mistral_key = get_mistral_api_key()
@@ -298,9 +298,20 @@ async def stream_gemini_chat(message: str, history: list, resume_text: str, web_
         sender = "User" if h.get("sender") == "user" else "Assistant"
         formatted_history += f"{sender}: {h.get('text')}\n"
         
+    thinking_instruction = ""
+    if thinking_mode:
+        thinking_instruction = (
+            "IMPORTANT: The user has enabled Thinking Mode. You must FIRST output your entire internal thought process "
+            "and reasoning wrapped exactly within <thought> and </thought> tags. "
+            "Analyze the user's request, the resume context, and especially any REAL-TIME CHAT GROUNDING RESULTS provided. "
+            "Think step-by-step about how you will answer, reference the websites you looked at, and then write your final response "
+            "AFTER the </thought> tag.\n\n"
+        )
+
     prompt = (
         "You are a stellar career coach. You have full context of the user's resume.\n"
         "Answer the user's question, giving highly strategic, practical advice.\n\n"
+        f"{thinking_instruction}"
         f"User's Resume:\n{resume_text}\n\n"
         f"Chat History:\n{formatted_history}\n"
         f"Real-Time Grounding Context:{grounding_str}\n"

@@ -58,6 +58,10 @@ export default function ResumeAnalyzer() {
   const [searchExpanded, setSearchExpanded] = useState({})
   const [uploadedChatFile, setUploadedChatFile] = useState(null)
   const [isDraggingFile, setIsDraggingFile] = useState(false)
+  
+  // Thinking Mode States
+  const [isChatThinkingEnabled, setIsChatThinkingEnabled] = useState(true) // On by default
+  const [modelMenuOpen, setModelMenuOpen] = useState(false)
 
   // Fetch cached resume text on mount
   useEffect(() => {
@@ -344,7 +348,15 @@ export default function ResumeAnalyzer() {
     setChatResponding(true)
 
     // Add empty response placeholder
-    const assistantMessagePlaceholder = { sender: 'mistral', text: '', searches: [] }
+    const assistantMessagePlaceholder = { 
+      sender: 'mistral', 
+      text: '', 
+      searches: [],
+      thought: '',
+      isThinking: isChatThinkingEnabled,
+      thinkingTime: 0,
+      thoughtExpanded: isChatThinkingEnabled 
+    }
     setChatHistory(prev => [...prev, assistantMessagePlaceholder])
 
     // Build the final message text including visual file attachment info for Mistral
@@ -353,11 +365,24 @@ export default function ResumeAnalyzer() {
       apiMessage += `\n\n[Context: The user attached a screenshot/file named "${attachedFile.name}" for reference. Please acknowledge the attachment and help analyze it relative to their request.]`
     }
 
+    // Thinking timer
+    const timerInterval = isChatThinkingEnabled ? setInterval(() => {
+      setChatHistory(prev => {
+        const copy = [...prev]
+        const last = copy[copy.length - 1]
+        if (last && last.sender === 'mistral' && last.isThinking) {
+          last.thinkingTime = (last.thinkingTime || 0) + 1
+          return [...copy] // return new array ref to trigger render
+        }
+        return prev
+      })
+    }, 1000) : null;
+
     try {
       const response = await fetch(`${API}/api/resume/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: apiMessage, history: chatHistory, web_search: isChatWebSearchEnabled })
+        body: JSON.stringify({ message: apiMessage, history: chatHistory, web_search: isChatWebSearchEnabled, thinking_mode: isChatThinkingEnabled })
       })
 
       if (!response.body) return
@@ -389,6 +414,7 @@ export default function ResumeAnalyzer() {
                 addToast(data.message || 'Chat failed', 'error')
                 // Remove the empty assistant placeholder if it errored out
                 setChatHistory(prev => prev.slice(0, -1))
+                if (timerInterval) clearInterval(timerInterval)
                 return
               }
               if (data.type === 'text') {
@@ -414,7 +440,35 @@ export default function ResumeAnalyzer() {
               setChatHistory(prev => {
                 const historyCopy = [...prev]
                 const last = historyCopy[historyCopy.length - 1]
-                last.text = tempAssistantText
+                
+                let displayText = tempAssistantText
+                let thoughtText = last.thought || ''
+                let isThinking = last.isThinking
+                let expanded = last.thoughtExpanded
+
+                const thoughtMatch = tempAssistantText.match(/<thought>([\s\S]*?)<\/thought>/);
+                if (thoughtMatch) {
+                  // Thinking finished
+                  thoughtText = thoughtMatch[1].trim()
+                  displayText = tempAssistantText.replace(/<thought>[\s\S]*?<\/thought>/, '').trim()
+                  if (isThinking) {
+                    isThinking = false
+                    expanded = false // Auto-close when done thinking
+                  }
+                } else if (tempAssistantText.includes('<thought>')) {
+                  // Currently thinking
+                  thoughtText = tempAssistantText.split('<thought>')[1] || ''
+                  displayText = ''
+                  isThinking = true
+                } else if (isChatThinkingEnabled) {
+                  // The stream started but <thought> hasn't arrived yet
+                  isThinking = true
+                }
+                
+                last.text = displayText
+                last.thought = thoughtText
+                last.isThinking = isThinking
+                last.thoughtExpanded = expanded
                 last.searches = tempSearches
                 return historyCopy
               })
@@ -428,9 +482,12 @@ export default function ResumeAnalyzer() {
           }
         }
       }
-    } catch {
+    } catch (err) {
+      console.error('Chat error:', err)
+      addToast('An error occurred during chat.', 'error')
       setChatResponding(false)
-      addToast('Chat message failed to send.', 'error')
+    } finally {
+      if (timerInterval) clearInterval(timerInterval)
     }
   }
 
@@ -1343,21 +1400,86 @@ export default function ResumeAnalyzer() {
                           </div>
                         )}
                         
-                        <div style={{
-                          background: msg.sender === 'user' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
-                          color: 'var(--text-primary)',
-                          padding: '12px 16px',
-                          borderRadius: 14,
-                          fontSize: 13,
-                          lineHeight: 1.5,
-                          whiteSpace: 'pre-wrap',
-                          border: msg.sender === 'user' ? 'none' : '1px solid var(--border-color)'
-                        }}>
-                          {msg.text || (
-                            <div style={{ display: 'flex', gap: 4, alignItems: 'center', height: 16 }}>
-                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0s' }}>.</span>
-                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.2s' }}>.</span>
-                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.4s' }}>.</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6, minWidth: 200, maxWidth: '100%' }}>
+                          {msg.sender === 'mistral' && (msg.thought || msg.isThinking) && (
+                            <div style={{ 
+                              background: 'var(--bg-primary)', 
+                              border: '1px solid var(--border-color)', 
+                              borderRadius: 8,
+                              overflow: 'hidden',
+                              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                            }}>
+                              <div 
+                                style={{ 
+                                  padding: '8px 12px', 
+                                  fontSize: 12, 
+                                  color: 'var(--text-secondary)',
+                                  display: 'flex', 
+                                  alignItems: 'center', 
+                                  gap: 8,
+                                  cursor: 'pointer',
+                                  userSelect: 'none'
+                                }}
+                                onClick={() => {
+                                  setChatHistory(prev => {
+                                    const copy = [...prev]
+                                    if (copy[idx]) {
+                                      copy[idx].thoughtExpanded = !copy[idx].thoughtExpanded
+                                    }
+                                    return copy
+                                  })
+                                }}
+                              >
+                                <span style={{ transform: msg.thoughtExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: 10 }}>▶</span>
+                                {msg.isThinking ? (
+                                  <>
+                                    <span style={{ fontWeight: 500 }}>Thinking...</span>
+                                    <span style={{ color: 'var(--text-muted)' }}>{msg.thinkingTime || 0}s</span>
+                                    <div style={{ display: 'flex', gap: 3, alignItems: 'center', marginLeft: 4 }}>
+                                      <span className="dot" style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1.4s infinite both', animationDelay: '0s' }} />
+                                      <span className="dot" style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1.4s infinite both', animationDelay: '0.2s' }} />
+                                      <span className="dot" style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1.4s infinite both', animationDelay: '0.4s' }} />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <span style={{ fontWeight: 500 }}>Thought for {msg.thinkingTime || 0}s</span>
+                                )}
+                              </div>
+                              {msg.thoughtExpanded && msg.thought && (
+                                <div style={{ 
+                                  padding: '12px', 
+                                  borderTop: '1px solid var(--border-color)', 
+                                  fontSize: 12, 
+                                  color: 'var(--text-muted)', 
+                                  lineHeight: 1.5,
+                                  whiteSpace: 'pre-wrap',
+                                  background: 'var(--bg-tertiary)',
+                                  fontFamily: 'monospace'
+                                }}>
+                                  {msg.thought}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {!(msg.sender === 'mistral' && msg.isThinking && !msg.text) && (
+                            <div style={{
+                              background: msg.sender === 'user' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
+                              color: 'var(--text-primary)',
+                              padding: '12px 16px',
+                              borderRadius: 14,
+                              fontSize: 13,
+                              lineHeight: 1.5,
+                              whiteSpace: 'pre-wrap',
+                              border: msg.sender === 'user' ? 'none' : '1px solid var(--border-color)'
+                            }}>
+                              {msg.text || (
+                                <div style={{ display: 'flex', gap: 4, alignItems: 'center', height: 16 }}>
+                                  <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0s' }}>.</span>
+                                  <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.2s' }}>.</span>
+                                  <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.4s' }}>.</span>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -1591,28 +1713,128 @@ export default function ResumeAnalyzer() {
                           </div>
                         )}
                       </div>
+                      {/* Right Side: Model Selector + Send Button */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, position: 'relative' }}>
+                        {/* Claude-style Model Selector Button */}
+                        <div 
+                          onClick={() => setModelMenuOpen(!modelMenuOpen)}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            cursor: 'pointer',
+                            fontSize: 12,
+                            color: 'var(--text-secondary)',
+                            padding: '4px 8px',
+                            borderRadius: 6,
+                            transition: '0.2s',
+                            userSelect: 'none'
+                          }}
+                          className="model-selector-btn"
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          <span style={{ fontWeight: 600 }}>Mistral Large {isChatThinkingEnabled ? 'Adaptive' : ''}</span>
+                          <span style={{ fontSize: 9 }}>▼</span>
+                        </div>
+                        
+                        {/* Claude-style Model Selector Dropdown Popover */}
+                        {modelMenuOpen && (
+                          <div 
+                            style={{
+                              position: 'absolute',
+                              bottom: 'calc(100% + 12px)',
+                              right: 0,
+                              background: 'var(--bg-secondary)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 12,
+                              boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                              padding: '8px',
+                              zIndex: 102,
+                              width: '260px',
+                              animation: 'scaleUp 0.15s ease-out'
+                            }}
+                          >
+                            <div style={{ padding: '8px 12px', borderBottom: '1px solid var(--border-color)', marginBottom: 4 }}>
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span style={{ fontSize: 13, fontWeight: '600', color: 'var(--text-primary)' }}>Mistral Large</span>
+                                <span style={{ color: 'var(--accent-blue)', fontSize: 14 }}>✓</span>
+                              </div>
+                              <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                                Powerful reasoning for complex tasks
+                              </div>
+                            </div>
+                            
+                            <div 
+                              onClick={() => {
+                                setIsChatThinkingEnabled(!isChatThinkingEnabled)
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '10px 12px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                borderRadius: 8,
+                                transition: '0.2s'
+                              }}
+                              className="menu-item"
+                            >
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                <span style={{ fontSize: 13, fontWeight: '500', color: 'var(--text-primary)' }}>Adaptive thinking</span>
+                                <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Thinks for more complex tasks</span>
+                              </div>
+                              
+                              {/* Toggle Switch */}
+                              <div style={{
+                                width: 34,
+                                height: 20,
+                                background: isChatThinkingEnabled ? 'var(--accent-blue)' : 'var(--border-color)',
+                                borderRadius: 10,
+                                position: 'relative',
+                                transition: '0.2s'
+                              }}>
+                                <div style={{
+                                  position: 'absolute',
+                                  top: 2,
+                                  left: isChatThinkingEnabled ? 16 : 2,
+                                  width: 16,
+                                  height: 16,
+                                  background: '#fff',
+                                  borderRadius: '50%',
+                                  transition: '0.2s',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.2)'
+                                }} />
+                              </div>
+                            </div>
+                          </div>
+                        )}
 
-                      {/* Send Button */}
-                      <button 
-                        onClick={() => handleChatSend()}
-                        disabled={!chatInput.trim() || chatResponding}
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: '50%',
-                          background: chatInput.trim() && !chatResponding ? 'var(--accent-purple)' : 'var(--bg-tertiary)',
-                          color: '#fff',
-                          border: 'none',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: chatInput.trim() && !chatResponding ? 'pointer' : 'default',
-                          fontSize: 13,
-                          transition: '0.2s'
-                        }}
-                      >
-                        ➔
-                      </button>
+                        {/* Send Button */}
+                        <button 
+                          onClick={() => {
+                            setModelMenuOpen(false)
+                            handleChatSend()
+                          }}
+                          disabled={!chatInput.trim() || chatResponding}
+                          style={{
+                            width: 28,
+                            height: 28,
+                            borderRadius: '50%',
+                            background: chatInput.trim() && !chatResponding ? 'var(--accent-purple)' : 'var(--bg-tertiary)',
+                            color: '#fff',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: chatInput.trim() && !chatResponding ? 'pointer' : 'default',
+                            fontSize: 13,
+                            transition: '0.2s'
+                          }}
+                        >
+                          ➔
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

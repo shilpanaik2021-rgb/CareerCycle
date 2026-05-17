@@ -807,6 +807,7 @@ class ChatRequest(BaseModel):
     message: str
     history: list
     web_search: bool = False
+    thinking_mode: bool = False
 
 
 @app.post("/api/resume/chat")
@@ -819,7 +820,7 @@ async def chat_resume_stream(request: ChatRequest):
             
     try:
         return StreamingResponse(
-            stream_gemini_chat(request.message, request.history, text, request.web_search),
+            stream_gemini_chat(request.message, request.history, text, request.web_search, request.thinking_mode),
             media_type="text/event-stream"
         )
     except Exception as e:
