@@ -5,7 +5,7 @@ import docx
 from docx.shared import Inches, Pt, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 import google.generativeai as genai
-from google.generativeai.types import Tool, GoogleSearchRetrieval
+from google.ai.generativelanguage import Tool, GoogleSearchRetrieval, DynamicRetrievalConfig
 from PyPDF2 import PdfReader
 
 # Ensure uploads directory exists
@@ -30,9 +30,16 @@ def get_gemini_model_with_search():
     if not api_key:
         raise ValueError("GEMINI_API_KEY is not configured in settings.")
     genai.configure(api_key=api_key)
-    search_tool = Tool(google_search_retrieval=GoogleSearchRetrieval())
+    search_tool = Tool(
+        google_search_retrieval=GoogleSearchRetrieval(
+            dynamic_retrieval_config=DynamicRetrievalConfig(
+                mode=DynamicRetrievalConfig.Mode.MODE_DYNAMIC,
+                dynamic_threshold=0.3
+            )
+        )
+    )
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
+        model_name="models/gemini-flash-latest",
         tools=[search_tool]
     )
     return model

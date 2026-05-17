@@ -11,3 +11,4 @@ requests
 beautifulsoup4
 setuptools
 PyPDF2
+httpx
