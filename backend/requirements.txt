@@ -12,4 +12,4 @@ setuptools
 PyPDF2
 httpx
 reportlab
-duckduckgo-search
+ddgs

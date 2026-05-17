@@ -41,20 +41,20 @@ def get_mistral_api_key():
     return api_key
 
 def free_web_search(query: str, max_results=3):
-    """Performs a free, zero-config DuckDuckGo web search using the official duckduckgo_search package."""
+    """Performs a free, zero-config web search via DuckDuckGo."""
     try:
-        from duckduckgo_search import DDGS
-        results = []
+        from ddgs import DDGS
         with DDGS() as ddgs:
-            raw_results = list(ddgs.text(query, max_results=max_results))
-            for r in raw_results:
-                results.append({
-                    "title": r.get("title", "").strip(),
-                    "url": r.get("href", "").strip()
+            results = [r for r in ddgs.text(query, max_results=max_results)]
+            mapped_results = []
+            for res in results:
+                mapped_results.append({
+                    "title": res.get("title", "").strip(),
+                    "url": res.get("href", "")
                 })
-        return results
+            return mapped_results
     except Exception as e:
-        print("DuckDuckGo search package error:", e)
+        print("Free web search error:", e)
         return []
 
 def parse_analysis_scores(text: str):
