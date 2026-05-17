@@ -88,12 +88,12 @@ export default function ResumeAnalyzer() {
     }
   }, [analysisText, state])
 
-  // Auto scroll to bottom of chat
+  // Auto scroll to bottom of chat only when a new message is added (avoids aggressive scrolling while reading)
   useEffect(() => {
     if (chatEndRef.current) {
       chatEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
-  }, [chatHistory])
+  }, [chatHistory.length])
 
   // PDF File Selection
   const handleFileChange = (e) => {
@@ -1430,7 +1430,6 @@ export default function ResumeAnalyzer() {
                                   })
                                 }}
                               >
-                                <span style={{ transform: msg.thoughtExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: 10 }}>▶</span>
                                 {msg.isThinking ? (
                                   <>
                                     <span style={{ fontWeight: 500 }}>Thinking...</span>
@@ -1444,6 +1443,7 @@ export default function ResumeAnalyzer() {
                                 ) : (
                                   <span style={{ fontWeight: 500 }}>Thought for {msg.thinkingTime || 0}s</span>
                                 )}
+                                <span style={{ transform: msg.thoughtExpanded ? 'rotate(90deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: 10 }}>▶</span>
                               </div>
                               {msg.thoughtExpanded && msg.thought && (
                                 <div style={{ 
@@ -1734,7 +1734,7 @@ export default function ResumeAnalyzer() {
                           onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                          <span style={{ fontWeight: 600 }}>Mistral Large {isChatThinkingEnabled ? 'Adaptive' : ''}</span>
+                          <span style={{ fontWeight: 600 }}>Mistral Large</span>
                           <span style={{ fontSize: 9 }}>▼</span>
                         </div>
                         
@@ -1781,7 +1781,7 @@ export default function ResumeAnalyzer() {
                               className="menu-item"
                             >
                               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                <span style={{ fontSize: 13, fontWeight: '500', color: 'var(--text-primary)' }}>Adaptive thinking</span>
+                                <span style={{ fontSize: 13, fontWeight: '500', color: 'var(--text-primary)' }}>Thinking</span>
                                 <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>Thinks for more complex tasks</span>
                               </div>
                               
