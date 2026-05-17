@@ -49,6 +49,9 @@ export default function ResumeAnalyzer() {
   // PDF Preview Timestamp (to bust browser iframe caching)
   const [pdfTimestamp, setPdfTimestamp] = useState(Date.now())
 
+  // Dynamic layout enlarger for PDF preview panels
+  const [isPdfEnlarged, setIsPdfEnlarged] = useState(false)
+
   // Fetch cached resume text on mount
   useEffect(() => {
     // Check if Mistral API key exists
@@ -553,13 +556,22 @@ export default function ResumeAnalyzer() {
       {/* STATE 2: ANALYZING STATE                                  */}
       {/* ========================================================= */}
       {state === 'analyzing' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: isPdfEnlarged ? '60% 40%' : '45% 55%', gap: 20, transition: 'all 0.3s ease' }}>
           {/* Left Column */}
           <div>
             {/* Resume Preview */}
-            <div className="card" style={{ height: 450, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 8, color: 'var(--text-secondary)' }}>
-                📄 Original Resume PDF Preview
+            <div className="card" style={{ height: 480, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 'bold', color: 'var(--text-secondary)' }}>
+                  📄 Original Resume PDF Preview
+                </div>
+                <button 
+                  className="btn btn-sm"
+                  onClick={() => setIsPdfEnlarged(!isPdfEnlarged)}
+                  style={{ padding: '4px 10px', fontSize: 10, background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}
+                >
+                  {isPdfEnlarged ? '🔍 Shrink' : '🔍 Enlarge PDF'}
+                </button>
               </div>
               <div className="resume-preview-box" style={{ flex: 1, background: '#fff', borderRadius: 6, border: '1px solid var(--border-color)', overflow: 'hidden' }}>
                 <iframe 
@@ -679,7 +691,7 @@ export default function ResumeAnalyzer() {
           </div>
 
           {/* 3-Panel Layout */}
-          <div style={{ display: 'grid', gridTemplateColumns: '25% 45% 30%', gap: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isPdfEnlarged ? '15% 30% 55%' : '25% 45% 30%', gap: 20, transition: 'all 0.3s ease' }}>
             {/* Panel Left: Issue Navigator */}
             <div className="card" style={{ height: 600, display: 'flex', flexDirection: 'column' }}>
               <div style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: 10, marginBottom: 12 }}>
@@ -798,20 +810,29 @@ export default function ResumeAnalyzer() {
 
             {/* Panel Right: Original + Improved Resume */}
             <div className="card" style={{ height: 750, display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: 12 }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', marginBottom: 12, alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', flex: 1 }}>
+                  <button 
+                    className={`tab-btn ${resultsActiveTab === 'original' ? 'active' : ''}`}
+                    onClick={() => setResultsActiveTab('original')}
+                    style={{ flex: 1, padding: 10, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                  >
+                    Original Resume
+                  </button>
+                  <button 
+                    className={`tab-btn ${resultsActiveTab === 'improved' ? 'active' : ''}`}
+                    onClick={() => setResultsActiveTab('improved')}
+                    style={{ flex: 1, padding: 10, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                  >
+                    ✨ Improved Resume
+                  </button>
+                </div>
                 <button 
-                  className={`tab-btn ${resultsActiveTab === 'original' ? 'active' : ''}`}
-                  onClick={() => setResultsActiveTab('original')}
-                  style={{ flex: 1, padding: 10, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
+                  className="btn btn-sm"
+                  onClick={() => setIsPdfEnlarged(!isPdfEnlarged)}
+                  style={{ marginLeft: 12, marginRight: 12, padding: '4px 12px', fontSize: 10, background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)' }}
                 >
-                  Original Resume
-                </button>
-                <button 
-                  className={`tab-btn ${resultsActiveTab === 'improved' ? 'active' : ''}`}
-                  onClick={() => setResultsActiveTab('improved')}
-                  style={{ flex: 1, padding: 10, background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}
-                >
-                  ✨ Improved Resume
+                  {isPdfEnlarged ? '🔍 Shrink View' : '🔍 Enlarge PDF'}
                 </button>
               </div>
 

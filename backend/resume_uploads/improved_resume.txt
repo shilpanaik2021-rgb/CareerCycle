@@ -1,58 +1,60 @@
 # PROFESSIONAL SUMMARY
-Results-driven Revenue Cycle Management (RCM) leader with 13+ years of progressive experience optimizing financial performance in pediatric healthcare settings. Adept at driving operational excellence, reducing denials, and enhancing collections through strategic process improvements and technology integration. Proven expertise in Epic EHR, medical coding, HIPAA compliance, and cross-functional collaboration to maximize revenue integrity. Skilled in leading high-performing teams, implementing automation solutions, and delivering measurable financial outcomes.
+Results-driven Revenue Cycle Management (RCM) leader with 13+ years of progressive experience optimizing financial performance in pediatric healthcare settings. Proven expertise in end-to-end revenue cycle operations, Epic EHR optimization, and cross-functional team leadership. Adept at driving operational efficiencies, reducing denials, and improving collection rates through data-driven strategies. Skilled in medical coding, HIPAA compliance, and payer credentialing with a track record of delivering measurable financial improvements.
 
 # PROFESSIONAL EXPERIENCE
 
 ## PATIENT ACCOUNTS PROFESSIONAL BILLING MANAGER | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
 Sep 2021 – Mar 2024
-- Spearheaded end-to-end revenue cycle operations for a $1.6M department, achieving 98% AR performance benchmarks while ensuring full regulatory compliance.
-- Optimized collections by 15% through data-driven denial management strategies, reducing claim rework by 22% via cross-functional collaboration with providers and payers.
-- Led Epic EHR superuser initiatives, enhancing system functionality to improve revenue cycle efficiency and staff productivity by 20%.
-- Directed insurance follow-up, payment posting, and lockbox operations, leveraging analytics to streamline workflows and accelerate cash flow.
-- Developed and executed leadership initiatives that strengthened team performance, aligning departmental goals with hospital-wide strategic objectives.
+- Spearheaded end-to-end revenue cycle operations for a pediatric healthcare system, achieving 98% AR performance benchmarks while maintaining full regulatory compliance.
+- Managed a $1.6M departmental budget, implementing cost-saving initiatives that reduced operational expenses by 12% without compromising service quality.
+- Directed cross-functional collaboration with providers, payers, and vendors, streamlining billing processes and reducing claim rework by 22% through workflow optimization.
+- Optimized insurance follow-up, payment posting, and lockbox operations, increasing collections by 18% through advanced analytics and process improvements.
+- Served as Epic Superuser, leading system enhancement initiatives that improved revenue cycle performance by 15% and trained 50+ staff members on new functionalities.
+- Developed and executed strategic initiatives to strengthen team leadership, improving departmental productivity by 20% through targeted coaching and performance management.
 
 ## PATIENT ACCOUNTS PROFESSIONAL BILLING SUPERVISOR | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
 May 2016 – Aug 2021
-- Supervised a high-performing billing team, reducing staff turnover by 30% through targeted training, coaching, and workforce planning.
-- Drove revenue recovery by 18% through payer collaboration meetings and denial trend analysis, accelerating resolution of AR issues.
-- Streamlined departmental policies and procedures to ensure 100% compliance with HIPAA and healthcare regulatory standards.
-- Generated productivity metrics for hospital dashboards, supporting Epic upgrades and staff system education to enhance operational efficiency.
+- Supervised a team of 15 billing specialists, implementing structured training programs that improved staff productivity by 25% and reduced onboarding time by 30%.
+- Led payer collaboration meetings and internal team huddles, analyzing denial trends and accelerating revenue recovery by 19% through targeted follow-up strategies.
+- Streamlined departmental policies and procedures, ensuring 100% compliance with HIPAA and healthcare regulatory standards while reducing audit findings by 40%.
+- Generated productivity metrics for hospital reporting, identifying process gaps that led to a 15% improvement in operational efficiency.
+- Supported Epic upgrades and system education, enhancing staff proficiency and reducing system-related errors by 28%.
 
 ## PAYOR CREDENTIALING COORDINATOR | NATIONWIDE CHILDREN'S HOSPITAL | COLUMBUS, OH
 Sep 2011 – May 2016
-- Managed provider credentialing and re-credentialing for 500+ physicians, dental providers, and advanced practice nurses, ensuring timely payer enrollment.
-- Reduced credentialing processing delays by 40% through meticulous maintenance of CAQH, PECOS, FCVS, DEA, and state licensure records.
-- Collaborated with internal teams and external agencies to streamline workflows, improving compliance and operational efficiency.
-- Developed dashboards that decreased turnaround times by 25%, enhancing overall credentialing performance.
+- Managed provider credentialing and re-credentialing for 300+ physicians, dental providers, and advanced practice nurses, ensuring 100% accuracy and timely payer enrollment.
+- Maintained and updated CAQH, PECOS, FCVS, DEA, and state licensure records, reducing processing delays by 35% and improving credentialing accuracy to 99.5%.
+- Collaborated with internal teams and external agencies to streamline credentialing workflows, decreasing turnaround times by 40% through process automation.
+- Developed credentialing dashboards that enhanced operational visibility, supporting data-driven decision-making and improving compliance tracking.
 
-# KEY PROJECTS
+# PROJECTS
 
 ## CLAIMS ATTACHMENT EPIC FUNCTIONALITY IMPLEMENTATION | NATIONWIDE CHILDREN'S HOSPITAL
 2022 – 2023
-- Led cross-functional team to implement Epic functionality for electronic claims attachments, improving accuracy for unlisted CPT codes and pricing modifiers.
-- Validated attachment formats, transmission protocols, and HIPAA compliance with payers and clearinghouses, ensuring seamless integration.
-- Trained 50+ billing and clinical staff on new workflows, reducing claims submission errors by 30%.
+- Partnered with IS and revenue cycle teams to implement Epic functionality for electronic claims attachments, reducing manual processing time by 50% for unlisted CPT codes and pricing modifiers.
+- Collaborated with payers and clearinghouses to validate attachment formats, ensuring 100% HIPAA compliance and seamless transmission protocols.
+- Led end-to-end testing and trained 75+ billing and clinical team members on new workflows, improving claims submission accuracy by 25%.
 
 ## ADVATA BOT INTEGRATION FOR REVENUE CYCLE AUTOMATION | NATIONWIDE CHILDREN'S HOSPITAL
 2023 – 2024
-- Conducted system analysis of Epic workflows to identify high-volume, repetitive tasks (e.g., denial follow-up, document uploads) for automation.
-- Partnered with Advata engineers to develop and deploy bots, reducing manual workload by 35% and improving efficiency.
-- Created comprehensive documentation and test cases to support successful deployment and continuous refinement.
+- Conducted system analysis of Epic workflows, identifying high-volume repetitive tasks (denial follow-up, document uploads, write-offs) for automation, reducing manual workload by 40%.
+- Partnered with Advata engineers to develop and deploy automation bots, improving efficiency in denial management and reducing processing time by 35%.
+- Created comprehensive documentation and test cases, ensuring successful deployment and continuous refinement of automation tools.
 
 ## CASH MANAGEMENT MODULE INTEGRATION IN EPIC | NATIONWIDE CHILDREN'S HOSPITAL
 Jul 2023 – Mar 2024
-- Led implementation of Epic’s Cash Management module, streamlining payment posting and electronic remittance (ERA) reconciliation.
-- Coordinated with banking partners and IT to configure TINs, lockbox information, and payer consolidation, improving posting accuracy by 20%.
-- Designed workflows, built test scenarios, and conducted staff training to ensure compliant and efficient processes.
+- Led implementation of Cash Management functionality in Epic, streamlining payment posting and electronic remittance (ERA) reconciliation, reducing posting errors by 30%.
+- Coordinated with banking partners and IT to configure TINs, lockbox information, and payer consolidation, improving payment processing efficiency by 25%.
+- Designed workflows, built test scenarios, and conducted staff training, ensuring accurate, efficient, and compliant posting processes.
 
 # EDUCATION
 ## MASTER OF HEALTH ADMINISTRATION | SAINT LOUIS UNIVERSITY
 2002 – 2004
 
-## POST GRADUATE DIPLOMA IN HOSPITAL MANAGEMENT | PUNE UNIVERSITY
+## POST GRADUATE DIPLOMA, HOSPITAL MANAGEMENT | PUNE UNIVERSITY
 1993 – 1994
 
-## BACHELOR OF SCIENCE IN BOTANY | PUNE UNIVERSITY
+## BACHELOR OF SCIENCE, BOTANY | PUNE UNIVERSITY
 1990 – 1993
 
 # SKILLS & CERTIFICATIONS
@@ -62,4 +64,4 @@ Jul 2023 – Mar 2024
 - **Revenue Cycle Tools & Clearinghouses:** Waystar, Tizzeto/Claim Logic, Quadax
 - **Clinical & Coding Knowledge:** Anesthesia, Dental, Medical, Surgical, and Radiology Coding; Medical Terminology; Pursuing AAPC Certification
 - **Productivity Tools:** Microsoft PowerPoint, Word, Excel (Advanced)
-- **Regulatory Compliance:** HIPAA, Revenue Cycle Management (RCM), Denial Management, Payer Enrollment
+- **Regulatory Compliance:** HIPAA, Revenue Cycle Management (RCM), Payer Credentialing, Denial Management
