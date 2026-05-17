@@ -37,7 +37,7 @@ class TestApiEndpoints(unittest.TestCase):
         response = self.client.get("/api/config")
         self.assertEqual(response.status_code, 200)
         data = response.json()
-        self.assertIn("gemini_api_key", data)
+        self.assertIn("mistral_api_key", data)
         self.assertIn("search_location", data)
 
     def test_task_status_endpoint(self):

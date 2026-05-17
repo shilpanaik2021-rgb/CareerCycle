@@ -114,7 +114,7 @@ class TailorBulletsRequest(BaseModel):
 
 
 class ConfigUpdate(BaseModel):
-    gemini_api_key: Optional[str] = None
+    mistral_api_key: Optional[str] = None
     linkedin_email: Optional[str] = None
     linkedin_password: Optional[str] = None
     search_location: Optional[str] = None
@@ -503,15 +503,12 @@ async def analyze_ats(request: ATSRequest):
 
 @app.post("/api/ats/tailor-bullets")
 async def tailor_bullets(request: TailorBulletsRequest):
-    """Generate tailored resume bullet points using Gemini AI."""
+    """Generate tailored resume bullet points using Mistral AI."""
     try:
-        import google.generativeai as genai
+        import requests
 
-        if not config.GEMINI_API_KEY:
-            raise HTTPException(status_code=400, detail="Gemini API key not configured")
-
-        genai.configure(api_key=config.GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
+        if not config.MISTRAL_API_KEY:
+            raise HTTPException(status_code=400, detail="Mistral API key not configured")
 
         resume_text = request.resume or resume_data.get_full_resume_text()
 
@@ -534,10 +531,23 @@ the wording to incorporate relevant keywords from the job posting.
 4. Format as JSON array with objects containing: "original", "tailored", "keywords_added"
 
 Return ONLY valid JSON, no markdown formatting, no code blocks. Example format:
-[{{"original": "Original bullet text", "tailored": "Rewritten bullet text", "keywords_added": ["keyword1", "keyword2"]}}]"""
+[{{\"original\": \"Original bullet text\", \"tailored\": \"Rewritten bullet text\", \"keywords_added\": [\"keyword1\", \"keyword2\"]}}]"""
 
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": f"Bearer {config.MISTRAL_API_KEY}"
+        }
+        payload = {
+            "model": "mistral-large-latest",
+            "messages": [{"role": "user", "content": prompt}]
+        }
+
+        response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            raise ValueError(f"Mistral API returned status code {response.status_code}: {response.text}")
+
+        response_text = response.json()['choices'][0]['message']['content'].strip()
 
         # Clean up potential markdown formatting
         if response_text.startswith("```"):
@@ -596,7 +606,7 @@ async def start_auto_apply():
 @app.get("/api/config")
 async def get_config():
     return {
-        "gemini_api_key": "••••" + config.GEMINI_API_KEY[-4:] if len(config.GEMINI_API_KEY) > 4 else "",
+        "mistral_api_key": "••••" + config.MISTRAL_API_KEY[-4:] if len(config.MISTRAL_API_KEY) > 4 else "",
         "linkedin_email": config.LINKEDIN_EMAIL,
         "linkedin_password": "••••••••" if config.LINKEDIN_PASSWORD else "",
         "search_location": config.SEARCH_LOCATION,
@@ -635,7 +645,7 @@ async def save_config(update: ConfigUpdate):
 
     # Update values
     field_map = {
-        "gemini_api_key": "GEMINI_API_KEY",
+        "mistral_api_key": "MISTRAL_API_KEY",
         "linkedin_email": "LINKEDIN_EMAIL",
         "linkedin_password": "LINKEDIN_PASSWORD",
         "search_location": "SEARCH_LOCATION",

@@ -48,9 +48,9 @@ export default function ResumeAnalyzer() {
 
   // Fetch cached resume text on mount
   useEffect(() => {
-    // Check if Gemini API key exists
+    // Check if Mistral API key exists
     axios.get(`${API}/api/config`).then(r => {
-      if (!r.data.gemini_api_key) {
+      if (!r.data.mistral_api_key) {
         setHasApiKey(false)
       }
     }).catch(() => {})
@@ -155,7 +155,7 @@ export default function ResumeAnalyzer() {
   // Start Streaming Analysis
   const startAnalysis = () => {
     if (!hasApiKey) {
-      addToast('Gemini API key is not configured. Please add it in Settings first.', 'warning')
+      addToast('Mistral API key is not configured. Please add it in Settings first.', 'warning')
       return
     }
     
@@ -326,7 +326,7 @@ export default function ResumeAnalyzer() {
     setChatResponding(true)
 
     // Add empty response placeholder
-    const assistantMessagePlaceholder = { sender: 'gemini', text: '', searches: [] }
+    const assistantMessagePlaceholder = { sender: 'mistral', text: '', searches: [] }
     setChatHistory(prev => [...prev, assistantMessagePlaceholder])
 
     try {
@@ -476,7 +476,7 @@ export default function ResumeAnalyzer() {
       {/* Warning Banner */}
       {!hasApiKey && (
         <div className="warning-banner" style={{ background: 'rgba(255,180,0,0.1)', border: '1px solid var(--accent-yellow)', color: 'var(--accent-yellow)', padding: 12, borderRadius: 8, marginBottom: 20, fontSize: 13 }}>
-          ⚠️ Gemini API key not configured. Add it in <strong>Settings</strong> to use this feature.
+          ⚠️ Mistral API key not configured. Add it in <strong>Settings</strong> to use this feature.
         </div>
       )}
 
@@ -565,7 +565,7 @@ export default function ResumeAnalyzer() {
             <div className="card" style={{ marginTop: 20, height: 250, display: 'flex', flexDirection: 'column' }}>
               <div style={{ fontSize: 13, fontWeight: 'bold', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
                 <span className="spinner" style={{ width: 14, height: 14 }} />
-                🌐 Gemini is searching the web...
+                🌐 Mistral is searching the web...
               </div>
               <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {webSearches.map((search, idx) => (
@@ -829,7 +829,7 @@ export default function ResumeAnalyzer() {
                           {improving ? (
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 }}>
                               <span className="spinner" />
-                              Gemini is rewriting your full resume...
+                              Mistral is rewriting your full resume...
                             </div>
                           ) : (
                             'Click "Improve My Resume" to generate an optimized version.'
@@ -873,7 +873,7 @@ export default function ResumeAnalyzer() {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 'bold' }}>
-              <span>💬</span> Ask Gemini About Your Resume
+              <span>💬</span> Ask Mistral About Your Resume
             </div>
             <button style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: 'var(--text-secondary)' }}>
               {chatOpen ? '▼' : '▲'}
@@ -939,7 +939,7 @@ export default function ResumeAnalyzer() {
                     )}
                     
                     <div style={{ display: 'flex', gap: 8, maxWidth: '70%' }}>
-                      {msg.sender === 'gemini' && (
+                      {msg.sender === 'mistral' && (
                         <div style={{
                           width: 28, 
                           height: 28, 
@@ -953,7 +953,7 @@ export default function ResumeAnalyzer() {
                           fontSize: 11,
                           flexShrink: 0
                         }}>
-                          G
+                          M
                         </div>
                       )}
                       

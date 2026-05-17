@@ -1,11 +1,12 @@
 """
-AI-powered cover letter generator using Google Gemini (google-generativeai).
+AI-powered cover letter generator using Mistral AI.
 Generates personalized cover letters based on Shilpa's resume and job descriptions.
 Saves cover letters as .txt files in /backend/cover_letters/.
 """
 import os
 import re
-import google.generativeai as genai
+import json
+import requests
 from docx import Document
 from docx.shared import Pt, Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -17,11 +18,11 @@ COVER_LETTERS_DIR = os.path.join(os.path.dirname(__file__), "cover_letters")
 os.makedirs(COVER_LETTERS_DIR, exist_ok=True)
 
 
-def _configure_gemini():
-    """Configure the Gemini API client."""
-    if not config.GEMINI_API_KEY:
-        raise ValueError("Gemini API key not configured. Add GEMINI_API_KEY to .env file.")
-    genai.configure(api_key=config.GEMINI_API_KEY)
+def _get_mistral_api_key():
+    """Retrieve Mistral API Key."""
+    if not config.MISTRAL_API_KEY:
+        raise ValueError("Mistral API key not configured. Add MISTRAL_API_KEY to .env file.")
+    return config.MISTRAL_API_KEY
 
 
 def _build_prompt(job_title: str, company: str, job_description: str) -> str:
@@ -69,17 +70,30 @@ Write the complete cover letter now:"""
 
 def generate_cover_letter(job_id: str, job_title: str, company: str, job_description: str) -> str:
     """
-    Generate a cover letter using Gemini AI.
+    Generate a cover letter using Mistral AI.
     Returns the cover letter text and saves it as a .txt file.
     """
-    _configure_gemini()
-
+    mistral_key = _get_mistral_api_key()
     prompt = _build_prompt(job_title, company, job_description)
 
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(prompt)
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {mistral_key}"
+    }
+    payload = {
+        "model": "mistral-large-latest",
+        "messages": [{"role": "user", "content": prompt}]
+    }
 
-    letter_text = response.text.strip()
+    try:
+        response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=payload, timeout=30)
+        if response.status_code != 200:
+            raise ValueError(f"Mistral API error: {response.text}")
+        data = response.json()
+        letter_text = data['choices'][0]['message']['content'].strip()
+    except Exception as e:
+        raise ValueError(f"Failed to generate cover letter: {str(e)}")
 
     # Save as .txt file
     safe_company = re.sub(r'[^\w\s-]', '', company).strip().replace(' ', '_')[:30]
@@ -142,13 +156,16 @@ def generate_cover_letter_docx(job_id: str, job_title: str, company: str, letter
 
 def generate_all_missing(jobs_df, log_list: list) -> int:
     """
-    Generate cover letters for all jobs that don't have one.
+    Generate cover letters for all jobs that don't have one using Mistral.
     Returns the count of letters generated.
     """
     import pandas as pd
 
-    _configure_gemini()
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    try:
+        mistral_key = _get_mistral_api_key()
+    except Exception as e:
+        log_list.append({"type": "error", "message": f"❌ Mistral API Configuration Error: {str(e)}"})
+        return 0
 
     count = 0
     missing = jobs_df[
@@ -156,6 +173,12 @@ def generate_all_missing(jobs_df, log_list: list) -> int:
     ]
 
     log_list.append({"type": "progress", "message": f"⚡ Generating cover letters for {len(missing)} jobs..."})
+
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Authorization": f"Bearer {mistral_key}"
+    }
 
     for idx, row in missing.iterrows():
         job_id = row["id"]
@@ -171,8 +194,17 @@ def generate_all_missing(jobs_df, log_list: list) -> int:
             log_list.append({"type": "progress", "message": f"⚡ [{count+1}] Generating for {company} - {title}..."})
 
             prompt = _build_prompt(title, company, description)
-            response = model.generate_content(prompt)
-            letter_text = response.text.strip()
+            payload = {
+                "model": "mistral-large-latest",
+                "messages": [{"role": "user", "content": prompt}]
+            }
+
+            response = requests.post("https://api.mistral.ai/v1/chat/completions", headers=headers, json=payload, timeout=30)
+            if response.status_code != 200:
+                raise ValueError(f"Mistral API error: {response.text}")
+            
+            data = response.json()
+            letter_text = data['choices'][0]['message']['content'].strip()
 
             # Save as .txt file
             safe_company = re.sub(r'[^\w\s-]', '', company).strip().replace(' ', '_')[:30]

@@ -48,9 +48,9 @@ export default function Settings() {
         <h3>🔑 API Keys</h3>
         <div className="form-grid">
           <div className="form-group form-full">
-            <label>Gemini API Key</label>
+            <label>Mistral API Key</label>
             <div style={{ display: 'flex', gap: 8 }}>
-              <input type={showKey ? 'text' : 'password'} value={cfg.gemini_api_key || ''} onChange={e => update('gemini_api_key', e.target.value)} style={{ flex: 1 }} />
+              <input type={showKey ? 'text' : 'password'} value={cfg.mistral_api_key || ''} onChange={e => update('mistral_api_key', e.target.value)} style={{ flex: 1 }} />
               <button className="btn" onClick={() => setShowKey(!showKey)}>{showKey ? '🙈' : '👁️'}</button>
             </div>
           </div>
