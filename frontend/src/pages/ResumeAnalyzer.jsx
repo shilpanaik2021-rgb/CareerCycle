@@ -367,18 +367,22 @@ export default function ResumeAnalyzer() {
       let tempAssistantText = ''
       let tempSearches = []
       let activeQuery = ''
+      let buffer = ''
 
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
 
-        const chunk = decoder.decode(value)
-        const lines = chunk.split('\n')
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        // Save the last incomplete line to parse in the next chunk
+        buffer = lines.pop() || ''
 
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
+          const cleanedLine = line.trim()
+          if (cleanedLine.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.replace('data: ', '').trim())
+              const data = JSON.parse(cleanedLine.substring(6).trim())
               
               if (data.type === 'error') {
                 setChatResponding(false)
@@ -397,7 +401,10 @@ export default function ResumeAnalyzer() {
               if (data.type === 'search_result') {
                 tempSearches = tempSearches.map(s => {
                   if (s.query === activeQuery) {
-                    return { ...s, results: [...s.results, { url: data.url, title: data.title }] }
+                    const alreadyExists = s.results.some(r => r.url === data.url)
+                    if (!alreadyExists) {
+                      return { ...s, results: [...s.results, { url: data.url, title: data.title }] }
+                    }
                   }
                   return s
                 })
@@ -415,8 +422,8 @@ export default function ResumeAnalyzer() {
               if (data.type === 'done') {
                 setChatResponding(false)
               }
-            } catch {
-              // Ignore line parse glitches
+            } catch (err) {
+              console.error('Failed to parse SSE line:', cleanedLine, err)
             }
           }
         }
@@ -1164,70 +1171,125 @@ export default function ResumeAnalyzer() {
                           maxWidth: '85%',
                           background: 'var(--bg-primary)',
                           border: '1px solid var(--border-color)',
-                          borderRadius: 8,
-                          padding: '12px 16px',
-                          marginBottom: 8,
-                          fontSize: 12,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                          borderRadius: 10,
+                          padding: '16px',
+                          marginBottom: 12,
+                          boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+                          animation: 'fadeIn 0.25s ease-out'
                         }}>
-                          <div 
-                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} 
-                            onClick={() => toggleSearchExpanded(idx)}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-blue)', fontWeight: '500' }}>
-                              <span className="spinner" style={{ width: 14, height: 14, borderLeftColor: 'var(--accent-blue)', animation: msg.text ? 'none' : 'spinner 1s linear infinite' }} />
-                              <span>
-                                {msg.text ? '✓ Web grounding complete' : '🌐 Mistral is searching the web...'}
+                          {/* Search Header */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                            {msg.text ? (
+                              <span style={{ color: 'var(--accent-green)', fontWeight: '600', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <span>✓</span> Web grounding complete
                               </span>
-                            </div>
-                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
-                              {searchExpanded[idx] ? '▲ Hide details' : '▼ View search queries & sites'}
-                            </span>
+                            ) : (
+                              <span style={{ color: 'var(--accent-blue)', fontWeight: '600', fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span className="spinner" style={{ width: 14, height: 14, borderLeftColor: 'var(--accent-blue)', display: 'inline-block', animation: 'spinner 1s linear infinite' }} />
+                                Mistral is searching the web...
+                              </span>
+                            )}
                           </div>
-                          
-                          {/* Expanded Search queries & citations grid (Matches Claude exact UI) */}
-                          {(!msg.text || searchExpanded[idx]) && (
-                            <div style={{ marginTop: 12, borderTop: '1px solid var(--border-color)', paddingTop: 10 }}>
-                              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, fontFamily: 'monospace' }}>
-                                {msg.searches.map((s, sIdx) => (
-                                  <div key={sIdx} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                                    <span style={{ color: 'var(--accent-green)' }}>✓</span>
-                                    <span>Query: "{s.query}"</span>
+
+                          {/* Live Searching Details List (Always Visible) */}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: 8, paddingLeft: 4 }}>
+                            {msg.searches.map((s, sIdx) => (
+                              <div key={sIdx} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                <div style={{ fontSize: 12, color: 'var(--text-secondary)', fontWeight: '500' }}>
+                                  🔍 Query: "{s.query}"
+                                </div>
+                                
+                                {/* Found Websites List - Rendered live one by one */}
+                                {s.results && s.results.length > 0 ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, paddingLeft: 12 }}>
+                                    {s.results.map((res, rIdx) => {
+                                      let hostname = 'website'
+                                      try {
+                                        hostname = new URL(res.url).hostname.replace('www.', '')
+                                      } catch {}
+                                      return (
+                                        <div 
+                                          key={rIdx} 
+                                          style={{ 
+                                            display: 'flex', 
+                                            alignItems: 'center', 
+                                            gap: 8, 
+                                            fontSize: 11, 
+                                            color: 'var(--text-muted)',
+                                            animation: 'scaleUp 0.2s ease-out'
+                                          }}
+                                        >
+                                          <span style={{ color: 'var(--accent-green)' }}>✓</span>
+                                          <span>Looked at:</span>
+                                          <span style={{ color: 'var(--text-primary)', fontWeight: '600' }}>{hostname}</span>
+                                          <span style={{ fontSize: 10, color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                            ({res.title})
+                                          </span>
+                                        </div>
+                                      )
+                                    })}
                                   </div>
-                                ))}
+                                ) : (
+                                  <div style={{ fontSize: 11, color: 'var(--text-muted)', fontStyle: 'italic', paddingLeft: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+                                    <span className="spinner" style={{ width: 10, height: 10, borderLeftColor: 'var(--text-muted)', display: 'inline-block', animation: 'spinner 1s linear infinite' }} />
+                                    Locating relevant websites...
+                                  </div>
+                                )}
                               </div>
-                              
-                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginTop: 8 }}>
-                                {msg.searches.flatMap(s => s.results || []).map((res, rIdx) => (
-                                  <a 
-                                    key={rIdx} 
-                                    href={res.url} 
-                                    target="_blank" 
-                                    rel="noreferrer" 
-                                    style={{
-                                      display: 'block',
-                                      padding: 8,
-                                      background: 'var(--bg-secondary)',
-                                      border: '1px solid var(--border-color)',
-                                      borderRadius: 6,
-                                      textDecoration: 'none',
-                                      transition: '0.2s',
-                                      overflow: 'hidden'
-                                    }}
-                                    className="search-citation-card"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                                      <span style={{ fontSize: 14 }}>🌐</span>
-                                      <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>
-                                        {new URL(res.url).hostname.replace('www.', '')}
-                                      </span>
-                                    </div>
-                                    <div style={{ fontSize: 11, color: 'var(--text-primary)', marginTop: 4, fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                                      {res.title}
-                                    </div>
-                                  </a>
-                                ))}
+                            ))}
+                          </div>
+
+                          {/* Horizontal Citation Cards Grid - Visible once found */}
+                          {msg.searches.some(s => s.results && s.results.length > 0) && (
+                            <div style={{ marginTop: 14, borderTop: '1px solid var(--border-color)', paddingTop: 12 }}>
+                              <div style={{ fontSize: 10, fontWeight: 'bold', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: 8, letterSpacing: '0.05em' }}>
+                                References:
+                              </div>
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
+                                {msg.searches.flatMap(s => s.results || []).map((res, rIdx) => {
+                                  let hostname = 'website'
+                                  try {
+                                    hostname = new URL(res.url).hostname.replace('www.', '')
+                                  } catch {}
+                                  return (
+                                    <a 
+                                      key={rIdx} 
+                                      href={res.url} 
+                                      target="_blank" 
+                                      rel="noreferrer" 
+                                      style={{
+                                        display: 'block',
+                                        padding: '8px 12px',
+                                        background: 'var(--bg-secondary)',
+                                        border: '1px solid var(--border-color)',
+                                        borderRadius: 8,
+                                        textDecoration: 'none',
+                                        transition: 'all 0.2s ease',
+                                        overflow: 'hidden'
+                                      }}
+                                      className="search-citation-card"
+                                      onMouseEnter={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(-2px)'
+                                        e.currentTarget.style.borderColor = 'var(--accent-blue)'
+                                      }}
+                                      onMouseLeave={(e) => {
+                                        e.currentTarget.style.transform = 'translateY(0)'
+                                        e.currentTarget.style.borderColor = 'var(--border-color)'
+                                      }}
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                        <span style={{ fontSize: 14 }}>🌐</span>
+                                        <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                          {hostname}
+                                        </span>
+                                      </div>
+                                      <div style={{ fontSize: 11, color: 'var(--text-primary)', marginTop: 4, fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                        {res.title}
+                                      </div>
+                                    </a>
+                                  )
+                                })}
                               </div>
                             </div>
                           )}

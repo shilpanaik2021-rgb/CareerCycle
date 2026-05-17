@@ -278,15 +278,22 @@ async def stream_gemini_chat(message: str, history: list, resume_text: str, web_
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         return
 
+    # Extract the clean user query before any attached screenshot/file context
+    clean_query = message.split("\n\n[Context:")[0].strip()
+    if len(clean_query) > 80:
+        clean_query = clean_query[:80] + "..."
+
     # Optional: run search grounding for Mistral chat if relevant or explicitly requested
     grounding_data = []
-    is_searching = web_search or any(k in message.lower() for k in ["salary", "job", "market", "pay", "trend", "hiring"])
+    is_searching = web_search or any(k in clean_query.lower() for k in ["salary", "job", "market", "pay", "trend", "hiring", "search", "online", "find"])
     if is_searching:
-        yield f"data: {json.dumps({'type': 'search_start', 'query': message[:60]})}\n\n"
-        search_results = free_web_search(message[:60], max_results=4)
+        import asyncio
+        yield f"data: {json.dumps({'type': 'search_start', 'query': clean_query})}\n\n"
+        search_results = free_web_search(clean_query, max_results=4)
         for res in search_results:
             yield f"data: {json.dumps({'type': 'search_result', 'url': res['url'], 'title': res['title']})}\n\n"
             grounding_data.append(res)
+            await asyncio.sleep(0.6) # Articulate delay to display websites one by one!
 
     grounding_str = ""
     if grounding_data:
