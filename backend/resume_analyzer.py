@@ -270,7 +270,7 @@ async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'message': f"Mistral API Error: {str(e)}"})}\n\n"
 
-async def stream_gemini_chat(message: str, history: list, resume_text: str):
+async def stream_gemini_chat(message: str, history: list, resume_text: str, web_search: bool = False):
     """Streams live chat response with resume context, history, and real-time grounding using Mistral."""
     try:
         mistral_key = get_mistral_api_key()
@@ -278,11 +278,12 @@ async def stream_gemini_chat(message: str, history: list, resume_text: str):
         yield f"data: {json.dumps({'type': 'error', 'message': str(e)})}\n\n"
         return
 
-    # Optional: run search grounding for Mistral chat if relevant
+    # Optional: run search grounding for Mistral chat if relevant or explicitly requested
     grounding_data = []
-    if any(k in message.lower() for k in ["salary", "job", "market", "pay", "trend", "hiring"]):
-        yield f"data: {json.dumps({'type': 'search_start', 'query': message[:50]})}\n\n"
-        search_results = free_web_search(message[:50], max_results=3)
+    is_searching = web_search or any(k in message.lower() for k in ["salary", "job", "market", "pay", "trend", "hiring"])
+    if is_searching:
+        yield f"data: {json.dumps({'type': 'search_start', 'query': message[:60]})}\n\n"
+        search_results = free_web_search(message[:60], max_results=4)
         for res in search_results:
             yield f"data: {json.dumps({'type': 'search_result', 'url': res['url'], 'title': res['title']})}\n\n"
             grounding_data.append(res)

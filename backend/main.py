@@ -806,6 +806,7 @@ async def improve_resume_stream(request: ImproveRequest):
 class ChatRequest(BaseModel):
     message: str
     history: list
+    web_search: bool = False
 
 
 @app.post("/api/resume/chat")
@@ -818,7 +819,7 @@ async def chat_resume_stream(request: ChatRequest):
             
     try:
         return StreamingResponse(
-            stream_gemini_chat(request.message, request.history, text),
+            stream_gemini_chat(request.message, request.history, text, request.web_search),
             media_type="text/event-stream"
         )
     except Exception as e:

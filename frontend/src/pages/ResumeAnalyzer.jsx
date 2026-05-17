@@ -52,6 +52,11 @@ export default function ResumeAnalyzer() {
   // Dynamic layout enlarger for PDF preview panels
   const [isPdfEnlarged, setIsPdfEnlarged] = useState(false)
 
+  // Claude-Style Web Search and Modal Menu States
+  const [isChatWebSearchEnabled, setIsChatWebSearchEnabled] = useState(false)
+  const [plusMenuOpen, setPlusMenuOpen] = useState(false)
+  const [searchExpanded, setSearchExpanded] = useState({})
+
   // Fetch cached resume text on mount
   useEffect(() => {
     // Check if Mistral API key exists
@@ -341,7 +346,7 @@ export default function ResumeAnalyzer() {
       const response = await fetch(`${API}/api/resume/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: textToSend, history: chatHistory })
+        body: JSON.stringify({ message: textToSend, history: chatHistory, web_search: isChatWebSearchEnabled })
       })
 
       if (!response.body) return
@@ -409,6 +414,11 @@ export default function ResumeAnalyzer() {
       setChatResponding(false)
       addToast('Chat message failed to send.', 'error')
     }
+  }
+
+  // Toggle Claude-style search results citations expansion
+  const toggleSearchExpanded = (idx) => {
+    setSearchExpanded(prev => ({ ...prev, [idx]: !prev[idx] }))
   }
 
   // Circular Score Gauge Color
@@ -888,163 +898,491 @@ export default function ResumeAnalyzer() {
       )}
 
       {/* ========================================================= */}
-      {/* MINI CHAT PANEL (Always Visible At Bottom)                */}
+      {/* CLAUDE-STYLE FLOATING ACTION BUTTON AND CENTERED MODAL   */}
       {/* ========================================================= */}
       {state !== 'upload' && (
-        <div style={{
-          position: 'fixed',
-          bottom: 0,
-          left: '260px', // Matches Sidebar width
-          right: 0,
-          background: 'var(--bg-secondary)',
-          borderTop: '1px solid var(--border-color)',
-          boxShadow: '0 -4px 20px rgba(0,0,0,0.3)',
-          zIndex: 99,
-          transition: 'all 0.3s ease'
-        }}>
-          {/* Header */}
-          <div 
-            onClick={() => setChatOpen(!chatOpen)}
-            style={{ 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              padding: '12px 24px', 
+        <>
+          {/* Floating Action Button (FAB) */}
+          <button 
+            onClick={() => setChatOpen(true)}
+            style={{
+              position: 'fixed',
+              bottom: 25,
+              right: 25,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              padding: '14px 26px',
+              background: 'var(--accent-purple)',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 30,
+              boxShadow: '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)',
               cursor: 'pointer',
-              background: 'var(--bg-tertiary)'
+              fontSize: 13,
+              fontWeight: 'bold',
+              transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+              zIndex: 1000
+            }}
+            className="chat-fab-btn"
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)'
+              e.currentTarget.style.boxShadow = '0 12px 40px rgba(139, 92, 246, 0.4)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)'
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.2)'
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, fontWeight: 'bold' }}>
-              <span>💬</span> Ask Mistral About Your Resume
-            </div>
-            <button style={{ background: 'none', border: 'none', fontSize: 16, cursor: 'pointer', color: 'var(--text-secondary)' }}>
-              {chatOpen ? '▼' : '▲'}
-            </button>
-          </div>
+            <span style={{ fontSize: 16 }}>💬</span> Ask Mistral
+            {isChatWebSearchEnabled && (
+              <span style={{
+                fontSize: 9,
+                background: 'rgba(59, 130, 246, 0.25)',
+                color: 'var(--accent-blue)',
+                padding: '2px 6px',
+                borderRadius: 10,
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                marginLeft: 4
+              }}>
+                Search ON
+              </span>
+            )}
+          </button>
 
-          {/* Collapsible Content */}
+          {/* Glassmorphic Centered Chat Modal */}
           {chatOpen && (
-            <div style={{ height: 350, display: 'flex', flexDirection: 'column', padding: '16px 24px' }}>
-              {/* Chat Message Box */}
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 12, paddingBottom: 15 }}>
-                {chatHistory.length === 0 && (
-                  <div style={{ textAlign: 'center', padding: 20 }}>
-                    <div style={{ color: 'var(--text-muted)', fontSize: 12, marginBottom: 12 }}>
-                      Ask anything about your resume, market trends, or request adjustments.
-                    </div>
-                    {/* Suggested Chips */}
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
-                      {[
-                        "Why did you rate my achievements low?",
-                        "What salary should I be targeting?",
-                        "Which keywords am I missing for Epic roles?",
-                        "How do I explain my gap since March 2024?",
-                        "What would a recruiter think of my summary?"
-                      ].map(chip => (
-                        <button 
-                          key={chip} 
-                          className="chip" 
-                          onClick={() => handleChatSend(chip)}
-                          style={{
-                            background: 'var(--bg-tertiary)',
-                            border: '1px solid var(--border-color)',
-                            borderRadius: 16,
-                            padding: '6px 12px',
-                            fontSize: 11,
-                            cursor: 'pointer',
-                            color: 'var(--text-secondary)'
-                          }}
-                        >
-                          {chip}
-                        </button>
-                      ))}
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0, 0, 0, 0.75)',
+                backdropFilter: 'blur(8px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                zIndex: 9999,
+                animation: 'fadeIn 0.2s ease-out'
+              }}
+              onClick={() => {
+                setChatOpen(false)
+                setPlusMenuOpen(false)
+              }}
+            >
+              {/* Modal Box */}
+              <div 
+                style={{
+                  width: '900px',
+                  height: '680px',
+                  maxWidth: '92%',
+                  maxHeight: '85vh',
+                  background: 'var(--bg-secondary)',
+                  borderRadius: 16,
+                  border: '1px solid var(--border-color)',
+                  boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal Header */}
+                <div 
+                  style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center', 
+                    padding: '16px 24px', 
+                    background: 'var(--bg-tertiary)',
+                    borderBottom: '1px solid var(--border-color)'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ fontSize: 18 }}>💬</span> 
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                        Mistral Assistant
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                        Interactive career coaching, resume adjustments & web search grounding
+                      </div>
                     </div>
                   </div>
-                )}
+                  <button 
+                    onClick={() => {
+                      setChatOpen(false)
+                      setPlusMenuOpen(false)
+                    }}
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      fontSize: 18, 
+                      cursor: 'pointer', 
+                      color: 'var(--text-secondary)',
+                      padding: 4,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
 
-                {chatHistory.map((msg, idx) => (
-                  <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
-                    {/* Embedded Grounding Search card */}
-                    {msg.searches && msg.searches.length > 0 && (
-                      <div style={{
-                        maxWidth: '70%', 
-                        background: 'rgba(0, 150, 255, 0.05)',
-                        borderLeft: '2px solid var(--accent-blue)',
-                        padding: 8, 
-                        borderRadius: 6, 
-                        fontSize: 11,
-                        marginBottom: 4,
-                        fontFamily: 'monospace'
-                      }}>
-                        🔍 Web ground queries: {msg.searches.map(s => s.query).join(', ')}
+                {/* Chat Scrollable Content */}
+                <div style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: 18 }}>
+                  {chatHistory.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '40px 20px', maxWidth: 600, margin: '0 auto' }}>
+                      <div style={{ fontSize: 24, marginBottom: 12 }}>🤖</div>
+                      <div style={{ color: 'var(--text-primary)', fontSize: 15, fontWeight: 'bold', marginBottom: 8 }}>
+                        Ask Mistral about your Resume
                       </div>
-                    )}
-                    
-                    <div style={{ display: 'flex', gap: 8, maxWidth: '70%' }}>
-                      {msg.sender === 'mistral' && (
+                      <div style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.5, marginBottom: 24 }}>
+                        Ask questions about market trends, missing keywords, salary projections, or draft bullet rewrites with real-time web-grounded research.
+                      </div>
+                      {/* Suggested Chips */}
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, justifyContent: 'center' }}>
+                        {[
+                          "Why did you rate my achievements low?",
+                          "What salary should I be targeting?",
+                          "Which keywords am I missing for Epic roles?",
+                          "How do I explain my gap since March 2024?",
+                          "What would a recruiter think of my summary?"
+                        ].map(chip => (
+                          <button 
+                            key={chip} 
+                            onClick={() => handleChatSend(chip)}
+                            style={{
+                              background: 'var(--bg-tertiary)',
+                              border: '1px solid var(--border-color)',
+                              borderRadius: 20,
+                              padding: '8px 16px',
+                              fontSize: 11,
+                              cursor: 'pointer',
+                              color: 'var(--text-secondary)',
+                              transition: '0.2s'
+                            }}
+                            className="chip-btn"
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {chatHistory.map((msg, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.sender === 'user' ? 'flex-end' : 'flex-start' }}>
+                      {/* Claude-style Web Search Accordion */}
+                      {msg.searches && msg.searches.length > 0 && (
                         <div style={{
-                          width: 28, 
-                          height: 28, 
-                          borderRadius: '50%', 
-                          background: 'var(--accent-purple)', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          justifyContent: 'center',
-                          color: '#fff',
-                          fontWeight: 'bold',
-                          fontSize: 11,
-                          flexShrink: 0
+                          width: '100%',
+                          maxWidth: '85%',
+                          background: 'var(--bg-primary)',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: 8,
+                          padding: '12px 16px',
+                          marginBottom: 8,
+                          fontSize: 12,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
                         }}>
-                          M
+                          <div 
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }} 
+                            onClick={() => toggleSearchExpanded(idx)}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--accent-blue)', fontWeight: '500' }}>
+                              <span className="spinner" style={{ width: 14, height: 14, borderLeftColor: 'var(--accent-blue)', animation: msg.text ? 'none' : 'spinner 1s linear infinite' }} />
+                              <span>
+                                {msg.text ? '✓ Web grounding complete' : '🌐 Mistral is searching the web...'}
+                              </span>
+                            </div>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                              {searchExpanded[idx] ? '▲ Hide details' : '▼ View search queries & sites'}
+                            </span>
+                          </div>
+                          
+                          {/* Expanded Search queries & citations grid (Matches Claude exact UI) */}
+                          {(!msg.text || searchExpanded[idx]) && (
+                            <div style={{ marginTop: 12, borderTop: '1px solid var(--border-color)', paddingTop: 10 }}>
+                              <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginBottom: 8, fontFamily: 'monospace' }}>
+                                {msg.searches.map((s, sIdx) => (
+                                  <div key={sIdx} style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                                    <span style={{ color: 'var(--accent-green)' }}>✓</span>
+                                    <span>Query: "{s.query}"</span>
+                                  </div>
+                                ))}
+                              </div>
+                              
+                              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10, marginTop: 8 }}>
+                                {msg.searches.flatMap(s => s.results || []).map((res, rIdx) => (
+                                  <a 
+                                    key={rIdx} 
+                                    href={res.url} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    style={{
+                                      display: 'block',
+                                      padding: 8,
+                                      background: 'var(--bg-secondary)',
+                                      border: '1px solid var(--border-color)',
+                                      borderRadius: 6,
+                                      textDecoration: 'none',
+                                      transition: '0.2s',
+                                      overflow: 'hidden'
+                                    }}
+                                    className="search-citation-card"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                      <span style={{ fontSize: 14 }}>🌐</span>
+                                      <span style={{ fontSize: 9, color: 'var(--text-muted)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                                        {new URL(res.url).hostname.replace('www.', '')}
+                                      </span>
+                                    </div>
+                                    <div style={{ fontSize: 11, color: 'var(--text-primary)', marginTop: 4, fontWeight: '500', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                                      {res.title}
+                                    </div>
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       )}
                       
-                      <div style={{
-                        background: msg.sender === 'user' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
+                      <div style={{ display: 'flex', gap: 10, maxWidth: '85%' }}>
+                        {msg.sender === 'mistral' && (
+                          <div style={{
+                            width: 32, 
+                            height: 32, 
+                            borderRadius: '50%', 
+                            background: 'var(--accent-purple)', 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            justifyContent: 'center',
+                            color: '#fff',
+                            fontWeight: 'bold',
+                            fontSize: 12,
+                            flexShrink: 0
+                          }}>
+                            M
+                          </div>
+                        )}
+                        
+                        <div style={{
+                          background: msg.sender === 'user' ? 'var(--accent-blue)' : 'var(--bg-tertiary)',
+                          color: 'var(--text-primary)',
+                          padding: '12px 16px',
+                          borderRadius: 14,
+                          fontSize: 13,
+                          lineHeight: 1.5,
+                          whiteSpace: 'pre-wrap',
+                          border: msg.sender === 'user' ? 'none' : '1px solid var(--border-color)'
+                        }}>
+                          {msg.text || (
+                            <div style={{ display: 'flex', gap: 4, alignItems: 'center', height: 16 }}>
+                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0s' }}>.</span>
+                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.2s' }}>.</span>
+                              <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.4s' }}>.</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  <div ref={chatEndRef} />
+                </div>
+
+                {/* Claude-style Input Block */}
+                <div 
+                  style={{ 
+                    padding: '16px 24px', 
+                    borderTop: '1px solid var(--border-color)', 
+                    background: 'var(--bg-tertiary)',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Plus Trigger Popup Menu */}
+                  {plusMenuOpen && (
+                    <div 
+                      style={{
+                        position: 'absolute',
+                        bottom: '75px',
+                        left: '24px',
+                        background: 'var(--bg-secondary)',
+                        border: '1px solid var(--border-color)',
+                        borderRadius: 10,
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.5)',
+                        padding: '6px 0',
+                        zIndex: 101,
+                        width: '210px',
+                        animation: 'scaleUp 0.15s ease-out'
+                      }}
+                    >
+                      <div 
+                        onClick={() => {
+                          setIsChatWebSearchEnabled(!isChatWebSearchEnabled)
+                          setPlusMenuOpen(false)
+                        }}
+                        style={{
+                          cursor: 'pointer',
+                          padding: '10px 14px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          fontSize: 12,
+                          color: 'var(--text-primary)',
+                          transition: '0.2s'
+                        }}
+                        className="menu-item"
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span>🌐</span>
+                          <strong>Web search</strong>
+                        </div>
+                        <input 
+                          type="checkbox" 
+                          checked={isChatWebSearchEnabled} 
+                          onChange={() => {}} 
+                          style={{ pointerEvents: 'none' }}
+                        />
+                      </div>
+                      
+                      {/* Disabled/Mocked Claude options for visual fidelity */}
+                      {[
+                        { label: 'Add files or photos', icon: '📎' },
+                        { label: 'Take a screenshot', icon: '📸' },
+                        { label: 'Add to project', icon: '📁' }
+                      ].map((item, index) => (
+                        <div 
+                          key={index}
+                          style={{
+                            padding: '10px 14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 8,
+                            fontSize: 12,
+                            color: 'var(--text-muted)',
+                            opacity: 0.6,
+                            cursor: 'not-allowed'
+                          }}
+                        >
+                          <span>{item.icon}</span>
+                          <span>{item.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Claude Rounded Input Field Container */}
+                  <div 
+                    style={{
+                      background: 'var(--bg-primary)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: 12,
+                      padding: '8px 12px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 8
+                    }}
+                  >
+                    {/* Main Input Text Field */}
+                    <input 
+                      type="text" 
+                      placeholder="Ask Mistral about your resume..."
+                      value={chatInput}
+                      onChange={(e) => setChatInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend() }}
+                      disabled={chatResponding}
+                      style={{ 
+                        flex: 1, 
+                        fontSize: 13, 
+                        border: 'none', 
+                        background: 'none', 
+                        outline: 'none',
                         color: 'var(--text-primary)',
-                        padding: '10px 14px',
-                        borderRadius: 12,
-                        fontSize: 13,
-                        lineHeight: 1.4,
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {msg.text || (
-                          <div style={{ display: 'flex', gap: 4, alignItems: 'center', height: 16 }}>
-                            <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0s' }}>.</span>
-                            <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.2s' }}>.</span>
-                            <span className="dot" style={{ animation: 'bounce 1.4s infinite both', animationDelay: '0.4s' }}>.</span>
+                        padding: '4px 0'
+                      }}
+                    />
+
+                    {/* Footer Row inside Input Box */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(255,255,255,0.03)', paddingTop: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        {/* Plus Button */}
+                        <button
+                          onClick={() => setPlusMenuOpen(!plusMenuOpen)}
+                          disabled={chatResponding}
+                          style={{
+                            width: 24,
+                            height: 24,
+                            borderRadius: '50%',
+                            background: 'var(--bg-tertiary)',
+                            border: '1px solid var(--border-color)',
+                            color: 'var(--text-secondary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            fontSize: 14,
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          +
+                        </button>
+                        
+                        {/* Web search active capsule tag */}
+                        {isChatWebSearchEnabled && (
+                          <div 
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                              background: 'rgba(59, 130, 246, 0.12)',
+                              color: 'var(--accent-blue)',
+                              padding: '3px 10px',
+                              borderRadius: 12,
+                              fontSize: 11,
+                              fontWeight: '500',
+                              border: '1px solid rgba(59, 130, 246, 0.3)'
+                            }}
+                          >
+                            <span>🌐</span>
+                            <span>Web Search Active</span>
                           </div>
                         )}
                       </div>
+
+                      {/* Send Button */}
+                      <button 
+                        onClick={() => handleChatSend()}
+                        disabled={!chatInput.trim() || chatResponding}
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: '50%',
+                          background: chatInput.trim() && !chatResponding ? 'var(--accent-purple)' : 'var(--bg-tertiary)',
+                          color: '#fff',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: chatInput.trim() && !chatResponding ? 'pointer' : 'default',
+                          fontSize: 13,
+                          transition: '0.2s'
+                        }}
+                      >
+                        ➔
+                      </button>
                     </div>
                   </div>
-                ))}
-                <div ref={chatEndRef} />
-              </div>
-
-              {/* Input Area */}
-              <div style={{ display: 'flex', gap: 10, borderTop: '1px solid var(--border-color)', paddingTop: 10 }}>
-                <input 
-                  type="text" 
-                  placeholder="Ask about your resume..."
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') handleChatSend() }}
-                  disabled={chatResponding}
-                  style={{ flex: 1, fontSize: 13 }}
-                />
-                <button 
-                  className="btn btn-primary" 
-                  onClick={() => handleChatSend()}
-                  disabled={!chatInput.trim() || chatResponding}
-                  style={{ padding: '8px 20px' }}
-                >
-                  Send
-                </button>
+                </div>
               </div>
             </div>
           )}
-        </div>
+        </>
       )}
     </div>
   )
