@@ -5,7 +5,7 @@ import sys
 # Ensure backend folder is in path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from resume_analyzer import parse_analysis_scores, build_improved_docx, extract_text_from_pdf
+from resume_analyzer import parse_analysis_scores, build_improved_docx, build_improved_pdf, extract_text_from_pdf
 
 class TestResumeAnalyzer(unittest.TestCase):
     
@@ -53,6 +53,25 @@ class TestResumeAnalyzer(unittest.TestCase):
         # Clean up generated file after test
         if os.path.exists(docx_path):
             os.remove(docx_path)
+
+    def test_build_improved_pdf(self):
+        """Test the PDF document builder parses markdown, cleans headers, and exports a valid file."""
+        test_resume = (
+            "*Shilpa Naik**\n"
+            "Orlando, Florida\n"
+            "614-256-9056 | Shilpa.Naik2021@gmail.com\n"
+            "• --\n"
+            "### **PROFESSIONAL SUMMARY**\n"
+            "Results-driven **Revenue Cycle Management (RCM) Leader** with **13+ years of progressive experience**.\n"
+            "• Optimized billing by reducing A/R days by **25%** using *Epic EHR Superuser* credentials.\n"
+        )
+        pdf_path = build_improved_pdf(test_resume)
+        self.assertTrue(os.path.exists(pdf_path))
+        self.assertTrue(pdf_path.endswith(".pdf"))
+        
+        # Clean up generated file after test
+        if os.path.exists(pdf_path):
+            os.remove(pdf_path)
 
 if __name__ == '__main__':
     unittest.main()

@@ -212,14 +212,19 @@ async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
         return
 
     prompt = (
-        "You are an expert resume writer. The user has requested to improve their resume based on recent ATS analysis.\n"
+        "You are an expert resume writer specializing in high-end healthcare administration and revenue cycle management resumes.\n"
+        "The user has requested to improve their resume based on recent ATS analysis.\n"
         f"Specific improvements suggested: {suggestions}\n\n"
         "Take the original resume and rewrite the entire content to be perfect. Make sure it incorporates:\n"
         "- Impactful action verbs\n"
         "- Quantified results ($ saved, % collection rates improved, denials reduced)\n"
         "- Crucial healthcare billing keywords (Epic EHR, medical coding, HIPAA, RCM, etc.)\n\n"
-        "Stream back the FULL optimized resume, clearly formatted with professional sections (Summary, Experience, Skills, Education).\n"
-        "Ensure there are no explanatory notes before or after. Just output the clean, professional, fully polished resume.\n\n"
+        "═══ STRICTION FORMATTING RULES ═══\n"
+        "1. DO NOT include any contact information header at the top (name, address, email, phone, LinkedIn, etc.) — this is added automatically by the PDF template. Start directly with the `# PROFESSIONAL SUMMARY` section.\n"
+        "2. Do NOT use markdown bold asterisks `**` or italic asterisks `*` inside the resume section headings or job headers. Keep all section headings perfectly clean plain text.\n"
+        "3. Use exactly `# ` for main section headers (e.g., `# PROFESSIONAL SUMMARY`, `# PROFESSIONAL EXPERIENCE`, `# EDUCATION`, `# SKILLS & CERTIFICATIONS`).\n"
+        "4. Use exactly `## ` for job title/company or degree lines (e.g., `## REVENUE CYCLE MANAGER | ADVENTHEALTH | ORLANDO, FL`).\n"
+        "5. Stream back ONLY the clean, professional, fully polished resume sections without any introductory/explanatory notes or markdown wrappers.\n\n"
         f"Original Resume:\n{resume_text}"
     )
 
@@ -485,30 +490,87 @@ def build_improved_pdf(text: str) -> str:
     
     # Parse and structure lines
     lines = text.split("\n")
+    processed_lines = []
+    
+    # 1. Skip duplicate contact info lines at the very top of the document
+    in_resume_body = False
     for line in lines:
         cleaned = line.strip()
         if not cleaned:
             continue
             
-        # Main headers (starts with # or entirely capitalized short lines)
-        if cleaned.startswith("#") and not cleaned.startswith("##"):
-            header_text = cleaned.replace("#", "").strip().upper()
-            story.append(Paragraph(header_text, h1_style))
-            story.append(HRFlowable(width="100%", thickness=1, color=steel, spaceBefore=1, spaceAfter=8))
-        elif len(cleaned) < 30 and cleaned.isupper() and not cleaned.startswith("-") and not cleaned.startswith("*"):
-            story.append(Paragraph(cleaned, h1_style))
-            story.append(HRFlowable(width="100%", thickness=1, color=steel, spaceBefore=1, spaceAfter=8))
-        # Subheaders (starts with ##)
-        elif cleaned.startswith("##"):
-            subheader_text = cleaned.replace("##", "").strip()
-            story.append(Paragraph(subheader_text, h2_style))
-        # Bullet points (starts with - or *)
-        elif cleaned.startswith("-") or cleaned.startswith("*"):
-            bullet_text = cleaned[1:].strip()
-            story.append(Paragraph(f"&bull;&nbsp; {bullet_text}", bullet_style))
-        # Paragraph body
+        # Stop filtering once we hit the first main header
+        if cleaned.startswith("#") or "SUMMARY" in cleaned.upper() or "EXPERIENCE" in cleaned.upper():
+            in_resume_body = True
+            
+        if not in_resume_body:
+            lower_line = cleaned.lower()
+            # If it resembles header contact details, skip it to prevent duplication
+            if (
+                "shilpa" in lower_line or
+                "naik" in lower_line or
+                "orlando" in lower_line or
+                "florida" in lower_line or
+                "@" in lower_line or
+                "linkedin" in lower_line or
+                re.search(r'\d{3}[-\s]?\d{3}[-\s]?\d{4}', cleaned) or
+                cleaned == "--" or
+                cleaned == "• --"
+            ):
+                continue
+                
+        processed_lines.append(cleaned)
+
+    # 2. Render each processed line with rich HTML styling
+    for line in processed_lines:
+        is_h1 = False
+        is_h2 = False
+        is_bullet = False
+        
+        cleaned_text = line
+        
+        # Categorize layout elements
+        if cleaned_text.startswith("###"):
+            is_h2 = True
+            cleaned_text = cleaned_text.replace("###", "").strip()
+        elif cleaned_text.startswith("##"):
+            is_h2 = True
+            cleaned_text = cleaned_text.replace("##", "").strip()
+        elif cleaned_text.startswith("#"):
+            is_h1 = True
+            cleaned_text = cleaned_text.replace("#", "").strip()
+        elif cleaned_text.startswith("-") or cleaned_text.startswith("*") or cleaned_text.startswith("•"):
+            is_bullet = True
+            cleaned_text = re.sub(r'^[-*•]\s*', '', cleaned_text).strip()
+            
+        # Clean section and sub-headers from raw markdown asterisks
+        if is_h1 or is_h2:
+            cleaned_text = cleaned_text.replace("**", "").replace("*", "").strip()
         else:
-            story.append(Paragraph(cleaned, body_style))
+            # Escape XML special chars for safe ReportLab paragraph parsing
+            cleaned_text = cleaned_text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            # Convert markdown bold **text** -> HTML <b>text</b>
+            cleaned_text = re.sub(r'\*\*(.*?)\*\*', r'<b>\1</b>', cleaned_text)
+            # Convert markdown italic *text* -> HTML <i>text</i>
+            cleaned_text = re.sub(r'\*(.*?)\*', r'<i>\1</i>', cleaned_text)
+            # Re-convert parsed XML characters inside HTML tags
+            cleaned_text = cleaned_text.replace("&lt;b&gt;", "<b>").replace("&lt;/b&gt;", "</b>")
+            cleaned_text = cleaned_text.replace("&lt;i&gt;", "<i>").replace("&lt;/i&gt;", "</i>")
+            
+            # Skip any blank separators or dashes
+            if cleaned_text == "--" or cleaned_text == "• --" or not cleaned_text:
+                continue
+
+        # Render styled PDF flowables
+        if is_h1:
+            story.append(Paragraph(cleaned_text.upper(), h1_style))
+            story.append(HRFlowable(width="100%", thickness=1, color=steel, spaceBefore=1, spaceAfter=8))
+        elif is_h2:
+            story.append(Paragraph(cleaned_text, h2_style))
+        elif is_bullet:
+            story.append(Paragraph(f"&bull;&nbsp; {cleaned_text}", bullet_style))
+        else:
+            story.append(Paragraph(cleaned_text, body_style))
             
     doc.build(story)
     return pdf_path
