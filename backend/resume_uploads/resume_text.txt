@@ -1,0 +1,79 @@
+Shilpa Naik
+Orlando, Florida
+614-256-9056|Shilpa.Naik2021@gmail.com |linkedin/shilpanaik2024
+EDUCATION
+Saint Louis University 2002 - 2004
+Master in Health Administration
+Pune University 1993 - 1994
+Post Graduate Diploma, Hospital Management
+Pune University 1990 - 1993
+Bachelor of Science, Botany
+SKILLS
+• Electronic Health Record : Epic, ECW
+• Healthcare Portals & Systems : Availity, Navinet, Change Healthcare , Optum, CAQH, PECOS, State Medicaid 
+Portals, FCVS
+• Enterprise & Workforce Software : Lawson, Workday, Kronos
+• Revenue Cycle Tools & Clearinghouses : Waystar, Tizzeto/Claim Logic , Quadax
+• Clinical & Coding Knowledge : Anesthesia, Dental, Medical, Surgical and Radiology Coding , Proficient in 
+Medical Terminology , Pursuing AAPC certification
+• Productivity Tools : Microsoft Powerpoint , Word, Excel
+EXPERIENCE
+Nationwide Children's Hospital Sep 2021 - Mar 2024
+Patient Accounts Professional Billing Manager Columbus, Ohio
+• Directed end-to-end revenue cycle operations, consistently meeting AR performance benchmarks and ensuring 
+full regulatory compliance.
+• Managed a $1.6M departmental budget, aligning financial planning with strategic and compliance goals.
+• Led cross-functional collaboration with providers, payers, and vendors to streamline billing processes and reduce 
+claim rework.
+• Oversaw insurance follow-up, payment posting, and lockbox operations; leveraged analytics to improve collec-
+tions and operational efficiency.
+• Developed and executed initiatives to strengthen team leadership and align departmental workflows with hospital 
+goals.
+• Interpreted operational and productivity reports to identify gaps, drive improvements, and maintain high-quality 
+performance.
+• Served as Epic Superuser; led staff training and system enhancement initiatives to improve functionality and 
+revenue cycle performance.
+Nationwide Children's Hospital May 2016 - Aug 2021
+Patient Accounts Professional Billing Supervisor Columbus, Ohio
+• Managed and developed billing staff through structured training, coaching, and collaboration with HR on hiring, 
+disciplinary actions, and workforce planning.
+• Led payer collaboration meetings  and internal team huddles to resolve AR issues, analyze denial trends, and 
+accelerate revenue recovery opportunities.
+• Streamlined departmental policies and procedures to align with HIPAA and healthcare regulatory standards.
+• Generated productivity metrics for hospital reporting and performance dashboards; supported Epic upgrades and 
+staff system education.
+Nationwide Children's Hospital Sep 2011 - May 2016
+Payor Credentialing Coordinator Columbus, Ohio
+• Managed provider credentialing and re-credentialing for physicians, dental providers, and advanced practice 
+nurses, ensuring accurate and timely payer enrollment.
+• Maintained and updated CAQH, PECOS, FCVS, DEA, and state licensure records, reducing processing delays 
+and improving credentialing accuracy.
+• Collaborated with internal teams and external agencies to streamline credentialing workflows and uphold payer 
+and regulatory compliance.
+• Developed dashboards and supported process improvements that decreased turnaround times and enhanced 
+operational efficiency.
+PROJECTS
+Claims Attachment EPIC Functionality 2022 - 2023
+Nationwide Children's Hospital
+• Partnered with IS and revenue cycle teams to implement EPIC functionality for electronic claims attachments 
+involving unlisted CPT codes and pricing modifiers.
+• Collaborated with payers and clearinghouses to validate attachment formats, transmission protocols, and HIPAA 
+compliance.
+• Led end-to-end testing and trained billing and clinical teams on new workflows to support accurate and compliant 
+claims submission.
+Colburn Hill Group Advata Bot Integration 2023 - 2024
+Nationwide Children's Hospital
+• Conducted system analysis of EPIC workflows to identify high-volume, repetitive tasks suitable for automation 
+(e.g., denial follow-up, document uploads, write-offs).
+• Partnered with Advata engineers to demonstrate current processes and develop bots that improved efficiency and 
+reduced manual workload.
+• Created detailed documentation and test cases to support successful deployment and refinement of automation 
+tools.
+Cash Management Module Integration in EPIC Jul 2023 - Mar 2024
+Nationwide Children's Hospital
+• Led implementation of Cash Management functionality in EPIC to streamline payment posting and electronic 
+remittance (ERA) reconciliation.
+• Coordinated with banking partners and IT to configure TINs, lockbox info, and payer consolidation into super 
+payer groups.
+• Designed workflows, built test scenarios, and conducted staff training to ensure accurate, efficient, and compliant 
+posting processes.

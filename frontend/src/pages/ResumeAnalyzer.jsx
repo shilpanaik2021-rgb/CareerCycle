@@ -171,6 +171,13 @@ export default function ResumeAnalyzer() {
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data)
       
+      if (data.type === 'error') {
+        eventSource.close()
+        setState('upload')
+        addToast(data.message || 'API Error occurred', 'error')
+        return
+      }
+
       if (data.type === 'text') {
         setAnalysisText(prev => prev + data.content)
       }
@@ -270,6 +277,11 @@ export default function ResumeAnalyzer() {
           if (line.startsWith('data: ')) {
             try {
               const data = JSON.parse(line.replace('data: ', '').trim())
+              if (data.type === 'error') {
+                setImproving(false)
+                addToast(data.message || 'Improvement failed', 'error')
+                return
+              }
               if (data.type === 'text') {
                 setImprovedResumeText(prev => prev + data.content)
               }
@@ -344,6 +356,13 @@ export default function ResumeAnalyzer() {
             try {
               const data = JSON.parse(line.replace('data: ', '').trim())
               
+              if (data.type === 'error') {
+                setChatResponding(false)
+                addToast(data.message || 'Chat failed', 'error')
+                // Remove the empty assistant placeholder if it errored out
+                setChatHistory(prev => prev.slice(0, -1))
+                return
+              }
               if (data.type === 'text') {
                 tempAssistantText += data.content
               }

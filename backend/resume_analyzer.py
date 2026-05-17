@@ -126,124 +126,142 @@ async def stream_gemini_analysis(resume_text: str):
         "Resume Text:\n"
     )
     
-    response = model.generate_content(
-        system_prompt + resume_text,
-        stream=True
-    )
-    
-    full_text = ""
-    seen_queries = set()
-    seen_sources = set()
-
-    for chunk in response:
-        # Stream text chunks
-        if chunk.text:
-            full_text += chunk.text
-            yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
+    try:
+        response = model.generate_content(
+            system_prompt + resume_text,
+            stream=True
+        )
         
-        # Stream web search queries & grounding chunks
-        if hasattr(chunk, 'candidates') and chunk.candidates:
-            candidate = chunk.candidates[0]
-            if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
-                meta = candidate.grounding_metadata
-                
-                # Check for queries
-                if hasattr(meta, 'web_search_queries') and meta.web_search_queries:
-                    for query in meta.web_search_queries:
-                        if query not in seen_queries:
-                            seen_queries.add(query)
-                            yield f"data: {json.dumps({'type': 'search_start', 'query': query})}\n\n"
-                
-                # Check for grounding chunks (visited websites)
-                if hasattr(meta, 'grounding_chunks') and meta.grounding_chunks:
-                    for chunk_item in meta.grounding_chunks:
-                        if hasattr(chunk_item, 'web') and chunk_item.web:
-                            url = chunk_item.web.uri
-                            title = chunk_item.web.title
-                            if url not in seen_sources:
-                                seen_sources.add(url)
-                                yield f"data: {json.dumps({'type': 'search_result', 'url': url, 'title': title})}\n\n"
-    
-    # Calculate score & breakdown from full accumulated text
-    overall, breakdown = parse_analysis_scores(full_text)
-    yield f"data: {json.dumps({'type': 'score', 'overall': overall, 'breakdown': breakdown})}\n\n"
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        full_text = ""
+        seen_queries = set()
+        seen_sources = set()
+
+        for chunk in response:
+            # Stream text chunks
+            if chunk.text:
+                full_text += chunk.text
+                yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
+            
+            # Stream web search queries & grounding chunks
+            if hasattr(chunk, 'candidates') and chunk.candidates:
+                candidate = chunk.candidates[0]
+                if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
+                    meta = candidate.grounding_metadata
+                    
+                    # Check for queries
+                    if hasattr(meta, 'web_search_queries') and meta.web_search_queries:
+                        for query in meta.web_search_queries:
+                            if query not in seen_queries:
+                                seen_queries.add(query)
+                                yield f"data: {json.dumps({'type': 'search_start', 'query': query})}\n\n"
+                    
+                    # Check for grounding chunks (visited websites)
+                    if hasattr(meta, 'grounding_chunks') and meta.grounding_chunks:
+                        for chunk_item in meta.grounding_chunks:
+                            if hasattr(chunk_item, 'web') and chunk_item.web:
+                                url = chunk_item.web.uri
+                                title = chunk_item.web.title
+                                if url not in seen_sources:
+                                    seen_sources.add(url)
+                                    yield f"data: {json.dumps({'type': 'search_result', 'url': url, 'title': title})}\n\n"
+        
+        # Calculate score & breakdown from full accumulated text
+        overall, breakdown = parse_analysis_scores(full_text)
+        yield f"data: {json.dumps({'type': 'score', 'overall': overall, 'breakdown': breakdown})}\n\n"
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    except Exception as e:
+        err_msg = str(e)
+        if "429" in err_msg or "quota" in err_msg.lower():
+            err_msg = "Gemini API rate limit exceeded (429). Please wait a few seconds and try again, or configure a paid API key in Settings."
+        yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
 
 async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
     """Streams full rewritten and optimized resume section by section."""
-    model = get_gemini_model_with_search()
-    
-    prompt = (
-        "You are an expert resume writer. The user has requested to improve their resume based on recent ATS analysis.\n"
-        f"Specific improvements suggested: {suggestions}\n\n"
-        "Take the original resume and rewrite the entire content to be perfect. Make sure it incorporates:\n"
-        "- Impactful action verbs\n"
-        "- Quantified results ($ saved, % collection rates improved, denials reduced)\n"
-        "- Crucial healthcare billing keywords (Epic EHR, medical coding, HIPAA, RCM, etc.)\n\n"
-        "Stream back the FULL optimized resume, clearly formatted with professional sections (Summary, Experience, Skills, Education).\n"
-        "Ensure there are no explanatory notes before or after. Just output the clean, professional, fully polished resume.\n\n"
-        f"Original Resume:\n{resume_text}"
-    )
-    
-    response = model.generate_content(prompt, stream=True)
-    full_text = ""
-    for chunk in response:
-        if chunk.text:
-            full_text += chunk.text
-            yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
-            
-    # Cache the improved text for download
-    with open(IMPROVED_RESUME_PATH, "w", encoding="utf-8") as f:
-        f.write(full_text)
+    try:
+        model = get_gemini_model_with_search()
         
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        prompt = (
+            "You are an expert resume writer. The user has requested to improve their resume based on recent ATS analysis.\n"
+            f"Specific improvements suggested: {suggestions}\n\n"
+            "Take the original resume and rewrite the entire content to be perfect. Make sure it incorporates:\n"
+            "- Impactful action verbs\n"
+            "- Quantified results ($ saved, % collection rates improved, denials reduced)\n"
+            "- Crucial healthcare billing keywords (Epic EHR, medical coding, HIPAA, RCM, etc.)\n\n"
+            "Stream back the FULL optimized resume, clearly formatted with professional sections (Summary, Experience, Skills, Education).\n"
+            "Ensure there are no explanatory notes before or after. Just output the clean, professional, fully polished resume.\n\n"
+            f"Original Resume:\n{resume_text}"
+        )
+        
+        response = model.generate_content(prompt, stream=True)
+        full_text = ""
+        for chunk in response:
+            if chunk.text:
+                full_text += chunk.text
+                yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
+                
+        # Cache the improved text for download
+        with open(IMPROVED_RESUME_PATH, "w", encoding="utf-8") as f:
+            f.write(full_text)
+            
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    except Exception as e:
+        err_msg = str(e)
+        if "429" in err_msg or "quota" in err_msg.lower():
+            err_msg = "Gemini API rate limit exceeded (429). Please wait a few seconds and try again, or configure a paid API key in Settings."
+        yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
 
 async def stream_gemini_chat(message: str, history: list, resume_text: str):
     """Streams live chat response with resume context and history."""
-    model = get_gemini_model_with_search()
-    
-    formatted_history = ""
-    for h in history:
-        sender = "User" if h.get("sender") == "user" else "Assistant"
-        formatted_history += f"{sender}: {h.get('text')}\n"
+    try:
+        model = get_gemini_model_with_search()
         
-    prompt = (
-        "You are a stellar career coach. You have full context of the user's resume.\n"
-        "Answer the user's question, giving highly strategic, practical advice.\n"
-        "Use web search grounding if they ask about market rates, salary trends, or specific tools.\n\n"
-        f"User's Resume:\n{resume_text}\n\n"
-        f"Chat History:\n{formatted_history}\n"
-        f"User's New Question: {message}\n"
-        "Assistant: "
-    )
-    
-    response = model.generate_content(prompt, stream=True)
-    seen_queries = set()
-    seen_sources = set()
-
-    for chunk in response:
-        if chunk.text:
-            yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
+        formatted_history = ""
+        for h in history:
+            sender = "User" if h.get("sender") == "user" else "Assistant"
+            formatted_history += f"{sender}: {h.get('text')}\n"
             
-        if hasattr(chunk, 'candidates') and chunk.candidates:
-            candidate = chunk.candidates[0]
-            if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
-                meta = candidate.grounding_metadata
-                if hasattr(meta, 'web_search_queries') and meta.web_search_queries:
-                    for query in meta.web_search_queries:
-                        if query not in seen_queries:
-                            seen_queries.add(query)
-                            yield f"data: {json.dumps({'type': 'search_start', 'query': query})}\n\n"
-                if hasattr(meta, 'grounding_chunks') and meta.grounding_chunks:
-                    for chunk_item in meta.grounding_chunks:
-                        if hasattr(chunk_item, 'web') and chunk_item.web:
-                            url = chunk_item.web.uri
-                            title = chunk_item.web.title
-                            if url not in seen_sources:
-                                seen_sources.add(url)
-                                yield f"data: {json.dumps({'type': 'search_result', 'url': url, 'title': title})}\n\n"
-                                
-    yield f"data: {json.dumps({'type': 'done'})}\n\n"
+        prompt = (
+            "You are a stellar career coach. You have full context of the user's resume.\n"
+            "Answer the user's question, giving highly strategic, practical advice.\n"
+            "Use web search grounding if they ask about market rates, salary trends, or specific tools.\n\n"
+            f"User's Resume:\n{resume_text}\n\n"
+            f"Chat History:\n{formatted_history}\n"
+            f"User's New Question: {message}\n"
+            "Assistant: "
+        )
+        
+        response = model.generate_content(prompt, stream=True)
+        seen_queries = set()
+        seen_sources = set()
+
+        for chunk in response:
+            if chunk.text:
+                yield f"data: {json.dumps({'type': 'text', 'content': chunk.text})}\n\n"
+                
+            if hasattr(chunk, 'candidates') and chunk.candidates:
+                candidate = chunk.candidates[0]
+                if hasattr(candidate, 'grounding_metadata') and candidate.grounding_metadata:
+                    meta = candidate.grounding_metadata
+                    if hasattr(meta, 'web_search_queries') and meta.web_search_queries:
+                        for query in meta.web_search_queries:
+                            if query not in seen_queries:
+                                seen_queries.add(query)
+                                yield f"data: {json.dumps({'type': 'search_start', 'query': query})}\n\n"
+                    if hasattr(meta, 'grounding_chunks') and meta.grounding_chunks:
+                        for chunk_item in meta.grounding_chunks:
+                            if hasattr(chunk_item, 'web') and chunk_item.web:
+                                url = chunk_item.web.uri
+                                title = chunk_item.web.title
+                                if url not in seen_sources:
+                                    seen_sources.add(url)
+                                    yield f"data: {json.dumps({'type': 'search_result', 'url': url, 'title': title})}\n\n"
+                                    
+        yield f"data: {json.dumps({'type': 'done'})}\n\n"
+    except Exception as e:
+        err_msg = str(e)
+        if "429" in err_msg or "quota" in err_msg.lower():
+            err_msg = "Gemini API rate limit exceeded (429). Please wait a few seconds and try again, or configure a paid API key in Settings."
+        yield f"data: {json.dumps({'type': 'error', 'message': err_msg})}\n\n"
 
 def build_improved_docx(text: str) -> str:
     """Builds a highly styled docx from the improved resume text and returns the file path."""
