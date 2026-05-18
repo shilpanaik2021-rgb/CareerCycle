@@ -4,7 +4,7 @@ import { useToast } from '../App'
 
 const API = import.meta.env.VITE_API_URL
 
-export default function ResumeAnalyzer() {
+export default function ResumeAnalyzer({ chatOnly = false } = {}) {
   const addToast = useToast()
   
   // Page States: 'upload' | 'analyzing' | 'results'
@@ -585,6 +585,8 @@ export default function ResumeAnalyzer() {
 
   return (
     <div style={{ paddingBottom: 80 }}>
+      {!chatOnly && (
+        <>
       {/* Warning Banner */}
       {!hasApiKey && (
         <div className="warning-banner" style={{ background: 'rgba(255,180,0,0.1)', border: '1px solid var(--accent-yellow)', color: 'var(--accent-yellow)', padding: 12, borderRadius: 8, marginBottom: 20, fontSize: 13 }}>
@@ -998,11 +1000,13 @@ export default function ResumeAnalyzer() {
           </div>
         </div>
       )}
+        </>
+      )}
 
       {/* ========================================================= */}
       {/* CLAUDE-STYLE FLOATING ACTION BUTTON AND CENTERED MODAL   */}
       {/* ========================================================= */}
-      {state !== 'upload' && (
+      {chatOnly && (
         <>
           {/* Floating Action Button (FAB) */}
           <button 
@@ -1744,7 +1748,9 @@ export default function ResumeAnalyzer() {
                           onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-tertiary)'}
                           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
-                          <span style={{ fontWeight: 600 }}>Mistral Large</span>
+                          <span style={{ fontWeight: 600 }}>
+                            Mistral Large{isChatThinkingEnabled ? ' · Thinking' : ''}
+                          </span>
                           <span style={{ fontSize: 9 }}>▼</span>
                         </div>
                         

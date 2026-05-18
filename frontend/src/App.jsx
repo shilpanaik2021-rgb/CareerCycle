@@ -54,6 +54,7 @@ export default function App() {
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </div>
+          <ResumeAnalyzer chatOnly />
           <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
       </BrowserRouter>
