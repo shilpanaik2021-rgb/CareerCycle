@@ -34,6 +34,7 @@ export default function ResumeAnalyzer() {
   const [improving, setImproving] = useState(false)
   const [improvedResumeText, setImprovedResumeText] = useState('')
   const [improvementSuggestions, setImprovementSuggestions] = useState('')
+  const [resumeDownloadName, setResumeDownloadName] = useState('Shilpa_Naik_Improved_Resume')
 
   // Chat States
   const [chatOpen, setChatOpen] = useState(false)
@@ -322,7 +323,8 @@ export default function ResumeAnalyzer() {
 
   // Download PDF
   const downloadImprovedPdf = () => {
-    window.open(`${API}/api/resume/improved/download`, '_blank')
+    const name = resumeDownloadName.trim() || 'Shilpa_Naik_Improved_Resume'
+    window.open(`${API}/api/resume/improved/download?filename=${encodeURIComponent(name)}`, '_blank')
     addToast('Downloading improved PDF resume', 'success')
   }
 
@@ -951,10 +953,18 @@ export default function ResumeAnalyzer() {
                   </div>
                 ) : (
                   <div style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                    <div style={{ display: 'flex', gap: 10, marginBottom: 10 }}>
+                    <div style={{ display: 'flex', gap: 10, marginBottom: 10, alignItems: 'center' }}>
                       <button className="btn btn-sm" onClick={copyImprovedResume} disabled={!improvedResumeText}>
                         📋 Copy Text
                       </button>
+                      <input
+                        type="text"
+                        value={resumeDownloadName}
+                        onChange={(e) => setResumeDownloadName(e.target.value)}
+                        placeholder="Resume file name"
+                        disabled={!improvedResumeText}
+                        style={{ flex: 1, minWidth: 0, fontSize: 12 }}
+                      />
                       <button className="btn btn-sm btn-primary" onClick={downloadImprovedPdf} disabled={!improvedResumeText}>
                         📄 Download .pdf
                       </button>

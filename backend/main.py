@@ -22,9 +22,9 @@ from job_finder import search_jobs
 from cover_letter import generate_cover_letter, generate_cover_letter_docx, generate_all_missing, COVER_LETTERS_DIR
 from auto_apply import auto_apply_linkedin
 from resume_analyzer import (
-    stream_gemini_analysis,
-    stream_gemini_improvement,
-    stream_gemini_chat,
+    stream_mistral_analysis,
+    stream_mistral_improvement,
+    stream_mistral_chat,
     build_improved_docx,
     build_improved_pdf,
     extract_text_from_pdf,
@@ -775,7 +775,7 @@ async def analyze_resume_stream():
             
     try:
         return StreamingResponse(
-            stream_gemini_analysis(text),
+            stream_mistral_analysis(text),
             media_type="text/event-stream"
         )
     except Exception as e:
@@ -796,7 +796,7 @@ async def improve_resume_stream(request: ImproveRequest):
             
     try:
         return StreamingResponse(
-            stream_gemini_improvement(text, request.suggestions),
+            stream_mistral_improvement(text, request.suggestions),
             media_type="text/event-stream"
         )
     except Exception as e:
@@ -820,7 +820,7 @@ async def chat_resume_stream(request: ChatRequest):
             
     try:
         return StreamingResponse(
-            stream_gemini_chat(request.message, request.history, text, request.web_search, request.thinking_mode),
+            stream_mistral_chat(request.message, request.history, text, request.web_search, request.thinking_mode),
             media_type="text/event-stream"
         )
     except Exception as e:
@@ -828,7 +828,7 @@ async def chat_resume_stream(request: ChatRequest):
 
 
 @app.get("/api/resume/improved/download")
-async def download_improved_resume():
+async def download_improved_resume(filename: Optional[str] = Query(None)):
     if not os.path.exists(IMPROVED_RESUME_PATH):
         raise HTTPException(status_code=400, detail="No improved resume found. Run the improve process first.")
         
@@ -836,9 +836,16 @@ async def download_improved_resume():
         improved_text = f.read()
         
     pdf_path = build_improved_pdf(improved_text)
+    safe_filename = "improved_resume.pdf"
+    if filename:
+        cleaned = re.sub(r'[^\w\s.-]', '', filename).strip().replace(" ", "_")
+        if cleaned:
+            if not cleaned.lower().endswith(".pdf"):
+                cleaned += ".pdf"
+            safe_filename = cleaned[:80]
     return FileResponse(
         pdf_path,
-        filename="improved_resume.pdf",
+        filename=safe_filename,
         media_type="application/pdf",
     )
 

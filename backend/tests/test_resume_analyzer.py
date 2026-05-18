@@ -10,7 +10,7 @@ from resume_analyzer import parse_analysis_scores, build_improved_docx, build_im
 class TestResumeAnalyzer(unittest.TestCase):
     
     def test_parse_analysis_scores_standard(self):
-        """Test parse_analysis_scores with typical Gemini response text."""
+        """Test parse_analysis_scores with typical Mistral response text."""
         test_text = (
             "## OVERALL SCORE: 85/100\n\n"
             "## SCORE BREAKDOWN:\n"

@@ -1,133 +1,251 @@
-# 🏥 Shilpa's Job Hunter
+# CareerCycle
 
-> A completely autonomous, AI-powered, production-grade SaaS application designed specifically for managing, automating, and optimizing the job search process.
+CareerCycle is a local, AI-powered job hunting command center built for Shilpa Naik's healthcare revenue cycle job search in Orlando, Florida and remote markets. It combines job discovery, pipeline tracking, cover-letter generation, ATS keyword analysis, resume improvement, PDF resume previews, and LinkedIn Easy Apply automation in one dark GitHub-style React application.
 
-Welcome to **Shilpa's Job Hunter**, a comprehensive job search management platform. This project isn't just a simple tracker; it is a fully-fledged pipeline that handles everything from discovering jobs across the web to analyzing your resume against Applicant Tracking Systems (ATS), auto-generating tailored cover letters using Google's Gemini AI, and even automatically applying to jobs on LinkedIn using robotic browser automation.
+## Tech Stack
 
----
+### Backend
 
-## 🛠️ Technology Stack & Architecture
+- Python + FastAPI
+- Uvicorn ASGI server
+- pandas for the CSV-backed job database
+- python-jobspy for job scraping across LinkedIn, Indeed, Glassdoor, and ZipRecruiter
+- Mistral AI chat completions for cover letters, tailored bullets, resume analysis, resume rewriting, and chat
+- ddgs DuckDuckGo search for lightweight web grounding in resume analysis and chat
+- PyPDF2 for PDF text extraction
+- ReportLab and python-docx for generated resume and cover-letter documents
+- Selenium and undetected-chromedriver for LinkedIn Easy Apply automation
 
-This application is built using a modern, decoupled architecture split between a high-performance Python API backend and a dynamic, responsive React frontend.
+### Frontend
 
-### 🌐 Frontend (User Interface)
-* **React.js**: The core library used to build the interactive user interface.
-* **Vite**: A lightning-fast build tool and development server that replaces Webpack for instant hot-module-reloading.
-* **Vanilla CSS (Design System)**: A completely custom, Github-inspired dark mode design system (`index.css`) built from the ground up utilizing CSS variables and modern layout techniques like Flexbox and Grid. No bulky CSS frameworks (like Tailwind or Bootstrap) were used, keeping the application lightweight and precisely styled.
-* **Axios**: For making seamless REST API calls to the Python backend.
-* **HTML5 Drag & Drop API**: Powers the interactive Kanban board without relying on heavy external drag-and-drop libraries.
+- React + Vite
+- Plain JavaScript
+- React Router
+- Axios
+- Vanilla CSS with the design system in `frontend/src/index.css`
 
-### ⚙️ Backend (API & Automation Services)
-* **Python 3.13**: The core language powering the backend logic and automation.
-* **FastAPI**: A modern, incredibly fast web framework for building the backend APIs. It handles all routing, request validation, and background thread management.
-* **Uvicorn**: An ASGI web server implementation used to run the FastAPI application.
-* **python-jobspy**: An advanced web scraping library that autonomously crawls LinkedIn, Indeed, Glassdoor, and ZipRecruiter to find job postings matching your criteria without needing API keys.
-* **Selenium & undetected-chromedriver**: A robotic browser automation suite used for the Auto-Apply feature. It opens a hidden Chrome browser, logs into LinkedIn, and automatically fills out Easy Apply applications.
-* **Google Generative AI (Gemini 1.5 Flash)**: Powers the cover letter generation and advanced text processing. It uses Shilpa's core resume data and the specific job description to write highly tailored, persuasive cover letters.
-* **pandas**: Used as a lightweight, fast, and robust database management tool. It reads, writes, and queries the `jobs.csv` file which acts as the application's persistent data store.
-* **python-docx**: Programmatically generates beautifully formatted Microsoft Word documents (`.docx`) for your generated cover letters.
+No CSS framework is used.
 
----
+## Project Structure
 
-## 🚀 "How It Works" Guide
+```text
+CareerCycle/
+  backend/
+    main.py                  FastAPI routes and background task orchestration
+    config.py                Environment-backed settings, job titles, filters, paths
+    resume_data.py           Shilpa's profile, resume data, and cover-letter style guide
+    job_finder.py            Job scraping, filtering, deduping, and CSV persistence
+    cover_letter.py          Mistral cover-letter generation and DOCX export
+    auto_apply.py            LinkedIn Easy Apply browser automation
+    resume_analyzer.py       PDF extraction, Mistral streaming, resume PDF/DOCX builders
+    requirements.txt         Backend dependencies
+    jobs.csv                 Local job database, generated automatically if missing
+    resume_uploads/          Local uploaded and generated resume files
+  frontend/
+    src/
+      App.jsx                App shell, routing, toast provider
+      main.jsx               React entrypoint
+      index.css              Dark design system and UI styles
+      pages/                 Dashboard, Jobs, Cover Letters, Resume Builder, Analyzer, Settings
+      components/            Sidebar, modals, stats, logs, cards, Kanban
+    package.json             Frontend scripts and dependencies
+  start.bat                  Windows launcher for backend and frontend
+```
 
-Shilpa's Job Hunter is designed to be your all-in-one command center for job hunting. Here is exactly how every piece of the application works and how you should use it.
+## Environment Setup
 
-### 1. The Dashboard (Your Command Center)
-**What it is:** The Dashboard is the first page you see. It provides a high-level overview of your entire job hunting operation. 
-**How to use it:**
-* **Statistics Bar:** At the top, you will see real-time metrics: Total Jobs tracked, how many you've Applied to, Interviews landed, Offers received, and your overall Response Rate.
-* **Action Buttons:** The main row of buttons controls the application's core background services. 
-* **Pipeline Summary & Recent Applications:** The bottom of the page gives you a visual breakdown of your job funnel and quick links to the most recent jobs you've applied to.
-* **Activity Log:** Whenever you start a long-running process (like scraping jobs or auto-applying), a live terminal window right on the Dashboard will stream exactly what the backend is doing in real-time.
+Create `backend/.env` from `backend/.env.example`:
 
-### 2. Searching For Jobs (The Scraping Engine)
-**How it works:** When you click **"🔍 Search for Jobs"** on the Dashboard, a settings window appears. 
-* You can define your Target Job Titles (e.g., Billing Manager, Revenue Cycle Director), Location, Search Radius, and Minimum Salary.
-* You can select exactly which job boards to search (LinkedIn, Indeed, Glassdoor, ZipRecruiter).
-* **Behind the scenes:** When you hit "Start Searching", the React frontend tells the FastAPI backend to spin up a background worker thread. The `jobspy` library begins querying the internet, scraping job listings, standardizing the data, checking for duplicates against your existing `jobs.csv` database, and finally saving new, unique jobs to your local files.
+```text
+MISTRAL_API_KEY=your_mistral_api_key_here
+LINKEDIN_EMAIL=your_linkedin_email_here
+LINKEDIN_PASSWORD=your_linkedin_password_here
+MIN_SALARY=100000
+SEARCH_LOCATION=Orlando, Florida, United States
+RADIUS_MILES=25
+MAX_DAYS_OLD=14
+RESULTS_PER_SEARCH=15
+INCLUDE_REMOTE=True
+```
 
-### 3. The Jobs Page (Managing Your Pipeline)
-**What it is:** This page holds every single job the system has ever found or that you have manually tracked.
-**How to use it:**
-* **View Toggles:** In the top right, you can switch between a **Table View** (great for dense information and sorting) and a **Kanban View** (great for visualizing your pipeline).
-* **Table Filters:** You can filter jobs by their source (LinkedIn vs Indeed), their status (Applied vs Rejected), and search by keyword.
-* **The Kanban Board:** In Kanban mode, your jobs are represented as cards. You can literally click and drag a job card from the "Not Applied" column and drop it into the "Applied" or "Interview" column. Doing this automatically updates the database in the backend instantly.
-* **The Side Panel:** Clicking on any job opens a detailed side panel. Here you can read the full job description, update the status, write down personal interview notes (which auto-save as you type), or click the "Generate Cover Letter" button.
+Create `frontend/.env.local` from `frontend/.env.example.local`:
 
-### 4. Cover Letters (The AI Generation Engine)
-**What it is:** A dedicated interface for managing and writing cover letters using Artificial Intelligence.
-**How it works:** 
-* The left side of the screen shows a list of your jobs. Clicking a job opens its cover letter workspace on the right.
-* If a letter doesn't exist, click **"♻️ Regenerate with AI"**.
-* **Behind the scenes:** The backend grabs your hardcoded professional background (from `backend/resume_data.py`), grabs the specific job description for the job you selected, and sends a highly complex prompt to Google's Gemini 1.5 Flash AI model. 
-* Gemini analyzes the job requirements and your history, and writes a perfectly tailored cover letter matching your tone.
-* The frontend displays this letter. You can manually edit the text (it auto-saves to a `.txt` file in the `backend/cover_letters/` folder on your hard drive).
-* Once you are happy with the text, click **"📄 Download .docx"** to instantly generate a professionally formatted Microsoft Word document ready to upload to an employer.
+```text
+VITE_API_URL=http://localhost:8000
+```
 
-### 5. Resume Builder (The ATS Analysis Engine)
-**What it is:** A tool designed to ensure your resume beats Applicant Tracking Systems (ATS) by matching keywords in a job description.
-**How to use it:**
-* Copy the full text of a job description you want to apply for and paste it into the left-hand text box.
-* Click **"🔍 Analyze Match"**.
-* **Behind the scenes:** The backend uses pure Python text analysis to strip out stop words (like 'and', 'the', 'or') from the job description. It then compares the remaining high-value keywords against your actual resume data.
-* **The Results:** You will get a percentage score out of 100 on a dynamic circular gauge. Below it, the system will explicitly list the **"✅ Keywords Found"** in your resume and the **"❌ Missing Keywords"** you need to add.
-* **AI Bullet Tailoring:** If your score is low, click the **"✍️ Generate Tailored Resume Bullets"** button. The AI will rewrite your existing resume bullet points specifically to include the missing keywords from the job description, showing you a "Before" and "After" comparison.
+## How To Start
 
-### 6. Settings Page (System Configuration)
-**What it is:** The control panel for your entire SaaS application.
-**How to use it:**
-* **Personal Info:** Fill out your name, contact info, and LinkedIn URL. This data is used by the AI to correctly format your cover letters.
-* **API Keys:** This is where you securely enter your `GEMINI_API_KEY` (required for all AI features) and your LinkedIn email/password (required if you want to use the Auto-Apply robot).
-* **Search Defaults:** Set your default location, radius, and salary expectations so you don't have to type them in every time you search.
-* Every time you hit "Save", this data is securely written to the `backend/.env` file.
+### Option 1: Windows Launcher
 
----
+Double-click `start.bat`, or run:
 
-## 🛠️ One-Time Environment Setup
+```powershell
+.\start.bat
+```
 
-The application comes with an automated startup script, but before you run it for the very first time, make sure your API keys are configured.
+This starts:
 
-1. Open the `backend/.env` file.
-2. Ensure you have added your **Gemini API Key**. If you don't have one, you can get it for free from [Google AI Studio](https://aistudio.google.com/app/apikey).
-   ```text
-   GEMINI_API_KEY=your_api_key_here
-   ```
-3. *(Optional)* Add your LinkedIn Email and Password if you plan to use the Auto-Apply feature.
+- Backend: `http://localhost:8000`
+- Frontend: `http://localhost:5173`
 
----
+### Option 2: Manual Developer Mode
 
-## 🚀 How to Start the Application
+Backend terminal:
 
-The entire application (both the Python database server and the React website) is controlled by a single automated script.
-
-### 🖱️ Option 1: The Automated Launcher (Recommended)
-1. Navigate to your main `CareerCycle` directory in your File Explorer.
-2. Double-click the file named **`start.bat`**.
-3. Two separate Command Prompt windows will instantly open on your screen:
-   * Window 1 will activate the Python virtual environment and start your API Database server.
-   * Window 2 will start your React User Interface server.
-4. Your default web browser will open (or you can manually navigate to `http://localhost:5173`) and the application is ready to use!
-
-### 💻 Option 2: The Manual Developer Method
-If you want to run the servers manually in your own terminal windows:
-
-**Terminal 1 (Backend API):**
-```bash
-# Ensure you are in the CareerCycle root directory
+```powershell
 .\venv\Scripts\activate
 cd backend
+pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-**Terminal 2 (Frontend Website):**
-```bash
-# Open a new terminal in the CareerCycle root directory
+Frontend terminal:
+
+```powershell
 cd frontend
+npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` in your browser. 
+Open `http://localhost:5173`.
 
----
-*Happy Job Hunting!* 🎯
+## How To Use CareerCycle
+
+### Dashboard
+
+The Dashboard is the job search command center. It shows total jobs, applications, interviews, offers, and response rate. Use the action buttons to search for jobs, generate missing cover letters, start LinkedIn auto-apply, or export the CSV database.
+
+When a background task runs, the Activity Log streams progress from the backend so you can see searches, skipped jobs, generation status, and errors.
+
+### Searching For Jobs
+
+Click **Search for Jobs** on the Dashboard. Choose:
+
+- Location and radius
+- Remote inclusion
+- Results per search
+- Maximum age of postings
+- Minimum salary
+- Job boards
+- Target job titles
+
+The backend uses `python-jobspy`, filters for healthcare billing and revenue cycle management roles, removes duplicates by URL, and writes new jobs into `backend/jobs.csv`.
+
+### Jobs Page
+
+The Jobs page has table and Kanban views.
+
+Use table view for filtering, sorting, opening job links, deleting records, generating cover letters, and editing statuses. Click a row to open the side panel with the full job description and auto-saving notes.
+
+Use Kanban view to drag jobs through:
+
+- Not Applied
+- Applied
+- Interview
+- Offer
+- Rejected
+
+Dropping a card updates the CSV through the FastAPI backend.
+
+### Cover Letters
+
+The Cover Letters page lists every job and whether it already has a generated letter. Select a job, generate or regenerate the letter with Mistral, edit it manually, copy it, or download a formatted `.docx`.
+
+Letters are tailored to Shilpa's healthcare revenue cycle background, Epic Superuser experience, leadership history, MHA credential, and preferred formal cover-letter style.
+
+### Resume Builder
+
+The Resume Builder page compares Shilpa's resume against a pasted job description.
+
+It provides:
+
+- ATS match score
+- Keywords found
+- Missing keywords
+- Suggestions
+- Mistral-generated tailored resume bullets with before/after comparisons
+
+The keyword score itself is pure Python matching, while the tailored bullets use Mistral.
+
+### Resume Analyzer
+
+The Resume Analyzer page supports PDF resume upload, text extraction, live AI analysis, improved resume generation, PDF previews, and a Mistral career-coach chat.
+
+Workflow:
+
+1. Upload a resume PDF or use the built-in resume text.
+2. Click **Analyze My Resume**.
+3. Watch streamed analysis, web grounding results, score breakdown, and critical issues.
+4. Add optional improvement instructions.
+5. Click **Improve My Resume** to stream a rewritten resume.
+6. Preview the improved PDF.
+7. Enter a custom filename and download the improved PDF.
+
+The chat assistant can answer questions about the resume, salary targets, missing keywords, market trends, gaps, and positioning. Optional web search grounding can be enabled from the chat menu.
+
+### Settings
+
+Settings controls:
+
+- Personal information fields shown in the UI
+- Mistral API key
+- LinkedIn email/password for auto-apply
+- Search defaults
+- Auto-apply limits and wait time
+- Notification toggles
+
+Saving writes supported runtime settings to `backend/.env`.
+
+## API Overview
+
+Core backend routes:
+
+- `GET /api/stats`
+- `GET /api/jobs`
+- `PATCH /api/jobs/{job_id}/status`
+- `PATCH /api/jobs/{job_id}/notes`
+- `DELETE /api/jobs/{job_id}`
+- `POST /api/jobs/search`
+- `GET /api/logs`
+- `GET /api/jobs/{job_id}/cover-letter`
+- `POST /api/jobs/{job_id}/cover-letter`
+- `PUT /api/jobs/{job_id}/cover-letter`
+- `POST /api/cover-letters/generate-all`
+- `GET /api/jobs/{job_id}/cover-letter/download`
+- `POST /api/ats/analyze`
+- `POST /api/ats/tailor-bullets`
+- `POST /api/auto-apply`
+- `GET /api/config`
+- `POST /api/config`
+- `GET /api/export/csv`
+- `GET /api/resume`
+- `POST /api/resume/upload`
+- `GET /api/resume/text`
+- `GET /api/resume/analyze`
+- `POST /api/resume/improve`
+- `POST /api/resume/chat`
+- `GET /api/resume/improved/download`
+- `GET /api/resume/original/pdf`
+- `GET /api/resume/improved/pdf`
+
+## Data Flow
+
+Job search starts in the frontend Dashboard and calls `POST /api/jobs/search`. FastAPI launches a background thread, `job_finder.py` scrapes and filters jobs, and new records are appended to `backend/jobs.csv`.
+
+The frontend reads the CSV through `GET /api/jobs`. Status changes, notes, cover-letter paths, and deletes are written back to the same CSV.
+
+## Generated Files
+
+Generated files are intentionally local:
+
+- `backend/jobs.csv`
+- `backend/cover_letters/`
+- `backend/resume_uploads/improved_resume.*`
+- uploaded resume PDFs and extracted resume text
+
+The improved resume output is ignored by Git so new generated resumes are not pushed accidentally.
+
+## Notes
+
+CareerCycle is tailored for Shilpa Naik's search for healthcare billing manager, professional billing manager, revenue cycle manager, and related leadership roles in Orlando, FL and remote markets with a target salary of $100,000+.

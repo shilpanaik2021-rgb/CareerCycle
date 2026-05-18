@@ -31,3 +31,4 @@ Thumbs.db
 *.docx
 jobs.csv
 backend/cover_letters/
+backend/resume_uploads/improved_resume.*

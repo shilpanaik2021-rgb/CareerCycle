@@ -87,7 +87,7 @@ def parse_analysis_scores(text: str):
     
     return overall, breakdown
 
-async def stream_gemini_analysis(resume_text: str):
+async def stream_mistral_analysis(resume_text: str):
     """Streams resume analysis with free search grounding and Mistral Large model."""
     try:
         mistral_key = get_mistral_api_key()
@@ -197,7 +197,7 @@ async def stream_gemini_analysis(resume_text: str):
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'message': f"Mistral API Error: {str(e)}"})}\n\n"
 
-async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
+async def stream_mistral_improvement(resume_text: str, suggestions: str = ""):
     """Streams full rewritten and optimized resume section by section using Mistral."""
     try:
         mistral_key = get_mistral_api_key()
@@ -262,7 +262,7 @@ async def stream_gemini_improvement(resume_text: str, suggestions: str = ""):
     except Exception as e:
         yield f"data: {json.dumps({'type': 'error', 'message': f"Mistral API Error: {str(e)}"})}\n\n"
 
-async def stream_gemini_chat(message: str, history: list, resume_text: str, web_search: bool = False, thinking_mode: bool = False):
+async def stream_mistral_chat(message: str, history: list, resume_text: str, web_search: bool = False, thinking_mode: bool = False):
     """Streams live chat response with resume context, history, and real-time grounding using Mistral."""
     try:
         mistral_key = get_mistral_api_key()
